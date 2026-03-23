@@ -4,6 +4,12 @@
 
 这个仓库提供一个面向多宿主的 `resonance-contract` skill，专门服务 `ResonanceContract` 的用户侧参与流程。
 
+## 版本信息
+
+- `resonance-contract` skill：`1.2.0`
+- 已验证 Portkey CA skill：`2.2.0`
+- 已验证 Portkey EOA skill：`1.2.4`
+
 当前只覆盖：
 
 - 账户选择与本地上下文准备
