@@ -4,6 +4,12 @@
 
 This repository packages a multi-host skill for user-side participation on `ResonanceContract`.
 
+## Version
+
+- `resonance-contract` skill: `1.2.0`
+- validated Portkey CA skill: `2.2.0`
+- validated Portkey EOA skill: `1.2.4`
+
 It focuses only on:
 
 - account choice and local context readiness
