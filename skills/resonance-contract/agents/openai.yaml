@@ -1,0 +1,7 @@
+interface:
+  display_name: "Resonance Contract"
+  short_description: "User-side resonance pairing flows for EOA and AA/CA"
+  default_prompt: "Use $resonance-contract to help this user choose EOA or AA/CA, create or confirm a resonance pair request, and return the required pre-send or post-send summary."
+
+policy:
+  allow_implicit_invocation: true

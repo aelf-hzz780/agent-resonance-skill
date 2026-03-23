@@ -1,0 +1,23 @@
+---
+description: Apply the ResonanceContract user-side workflow when the user asks for resonance pairing, account routing, create or confirm flows, or pair status diagnosis.
+alwaysApply: false
+---
+
+# Resonance Contract Rule
+
+Use the `resonance-contract` workflow from this repository when the user asks for:
+
+- resonance pairing on `ResonanceContract`
+- `EOA` or `AA/CA` routing for user-side participation
+- `CreatePairRequest`
+- `ConfirmPairRequest`
+- pair status lookup, pending diagnosis, expired diagnosis, or already-resonated diagnosis
+
+## Canonical Package
+
+- `skills/resonance-contract/SKILL.md`
+- `skills/resonance-contract/references/flows/`
+- `skills/resonance-contract/references/examples/`
+- `skills/resonance-contract/references/output-contract.md`
+
+Load the canonical package and follow it exactly. Do not duplicate the workflow inside this rule file.
