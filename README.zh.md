@@ -6,7 +6,7 @@
 
 ## 版本信息
 
-- `resonance-contract` skill：`2.0.0`
+- `resonance-contract` skill：`2.1.0`
 - 已验证 Portkey CA skill：`2.2.0`
 - 已验证 Portkey EOA skill：`1.2.4`
 
@@ -28,7 +28,9 @@
 - 显式依赖 Portkey skill 处理本地 signer 或 manager 上下文
 - 所有写操作都先做读校验
 - 所有写操作都要求显式确认
-- 统一写前摘要和写后回执
+- 默认先给普通用户摘要，再给写前摘要和写后回执的关键锚点
+- 默认层会展示 `skill_version` 和 `dependency_versions`
+- `Technical Details` 只在用户明确说“展开详情 / debug / 看链上参数”时再完整展开
 - 会把排队超时、默认撮合规则、满队列处理方式和升级冷却期解释成普通用户能看懂的话
 - 对完成类结果统一追加社区 CTA
 

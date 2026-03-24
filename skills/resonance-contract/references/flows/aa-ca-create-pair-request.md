@@ -59,7 +59,11 @@ Use this flow only when all conditions below are true:
 24. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
 25. Compute the create-side maximum reservation check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 26. Stop if the available reward balance is lower than the create-side maximum reservation check.
-27. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, forwarded method chain, pair-state reads, queue-state reads, reward-balance reads, queue timeout, and `user_explanation`.
+27. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on caller identity, target counterparty, target contract address, whether the write can proceed, timeout, queue or pending conflicts, and the balance conclusion
+    - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
+    - keep the raw execution address, target CA contract, forwarded method chain, pair-state reads, queue-state reads, reward-balance reads, and other engineering fields in `Technical Details` unless the user explicitly asks for them
 28. Ask for explicit confirmation.
 29. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `CreatePairRequest(counterparty)` call.
 30. If a `txId` is returned, share the `txId` and explorer link.
@@ -90,24 +94,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `AA/CA Create Pair Request`
-- manager signer
-- resolved `AA/CA` holder address
-- `caHash` when available
-- counterparty
-- target resonance contract in normalized full-address and raw-address form
-- target CA contract
-- dependency mode and detected Portkey CA skill version when practical
-- method chain `ManagerForwardCall -> CreatePairRequest(Address counterparty)`
-- current window and reward tiers
-- current pair state
-- `GetActivePendingPair` for holder and counterparty when practical
-- `GetPairQueueStatus` for holder and counterparty when practical
-- `GetRewardBalance` or `GetAvailableRewardBalance`
-- create-side maximum reservation check
-- expired-pending auto-clear note when relevant
-- `user_explanation` that translates timeout, exclusivity, warmup, and queue-full implications into ordinary language when relevant
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout or pending-validity guidance, the main blocker or balance conclusion, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current window and reward tiers, pair state, address-scoped pending and queue state, reward-balance reads, create-side maximum reservation check, expired-pending auto-clear note, and supporting `user_explanation`
 
 ## Example Reference
 

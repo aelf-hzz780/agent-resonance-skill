@@ -1,6 +1,6 @@
 # Runtime Compatibility
 
-Version: `2.0.0`
+Version: `2.1.0`
 
 Use this file when the agent needs to normalize deployment config, reason about Portkey dependency versions, explain queue semantics, reason about reward reservation, diagnose warmup, or apply known SDK fallbacks.
 
@@ -33,6 +33,27 @@ Normalization rule:
 - if the normalized full address and the incoming config differ, show both `input_contract_address` and `normalized_full_contract_address`
 - if the runtime is not the validated `tDVV` environment and no explicit address is available, stop and explain the missing deployment config
 
+## RPC Transport Semantics
+
+Treat `rpc_url` as the AElf JSON-RPC base endpoint, not as a browser-only page URL.
+
+Transport rule:
+
+- AElf SDK reads and writes use HTTP `POST` against `rpc_url`
+- the same base URL may also render a browser-facing page such as Swagger on `GET`
+- a successful browser `GET` does not prove that JSON-RPC `POST` is healthy
+- a successful TLS handshake also does not prove that the RPC method path, upstream gateway, proxy, WAF, CDN, or node-side request handling is healthy
+
+Reply rule:
+
+- if `GET` works but JSON-RPC `POST` times out, hangs, resets, returns an empty response, fails before a parseable JSON-RPC payload is returned, or otherwise never yields a usable JSON-RPC response, describe it as an RPC transport or endpoint availability problem in the current environment
+- if JSON-RPC `POST` returns a structured JSON-RPC error, HTTP application error, exact contract error, parameter-validation error, or ABI/decode error, do not call it a transport problem
+- do not claim a specific root cause such as `VPN`, `router`, `SSL`, `certificate`, or `firewall` unless the evidence clearly isolates that cause
+- prefer wording such as:
+  - `The current environment can reach the endpoint and complete TLS, but JSON-RPC POST requests to the RPC base URL are not returning.`
+  - `This shows an RPC transport problem in the current environment, but it does not by itself isolate the exact root cause.`
+- if the agent is only inferring from browser reachability plus failed SDK calls, say that `GET reachability and POST JSON-RPC health are different checks`
+
 ## Portkey Dependency Mode
 
 Validated local Portkey dependency versions:
@@ -40,15 +61,29 @@ Validated local Portkey dependency versions:
 - Portkey CA skill: `2.2.0`
 - Portkey EOA skill: `1.2.4`
 
+Dependency-version source rule:
+
+- prefer the actually detected local dependency version for the path that was used
+- for `AA/CA`, prefer runtime metadata; if runtime metadata is `0.0.0` but the local package manifest has a real version, prefer the manifest version and report the runtime metadata bug in fallback evidence
+- for `EOA`, prefer runtime metadata when available; otherwise prefer the local package manifest version when the local Portkey EOA skill is actually present
+- never copy the validated version into a user reply unless the local runtime or manifest actually confirms that version
+- if the local dependency version still cannot be resolved reliably, omit that `dependency_versions.*` field from the default visible layer and explain the omission only in technical details
+
 Observed local compatibility mode:
 
-- `2.1.x` still works for the resonance flow, but the agent must apply the fallbacks below
+- `2.1.x` still works for the resonance flow, but the agent must apply the compatibility handling below
 
 Suggested reply metadata when the runtime is not on the validated dependency version:
 
 - `dependency_versions.portkey_ca = <detected version>`
 - `dependency_mode = compatibility`
 - if the dependency runtime metadata reports `0.0.0` but the local package manifest has a real version, prefer the manifest version and report the runtime metadata path as buggy
+
+Dependency-mode rule:
+
+- `dependency_mode` only means dependency compatibility state, not generic runtime fallback state
+- valid values in this skill are `normal` and `compatibility`
+- if event decoding, fallback reads, or manifest-version override are used, report them in `used_fallbacks` or fallback evidence instead of inventing `dependency_mode = fallback`
 
 ## Participation Gating
 
@@ -141,6 +176,8 @@ Use these rules exactly:
 - `GetPairStatus` and `GetPendingPair` must use `camelCase` params: `addressA`, `addressB`
 - `CreatePairRequest(Address)`, `ConfirmPairRequest(Address)`, `GetActivePendingPair(address)`, `GetPairQueueStatus(address)`, `GetStrongRecord(address)`, `GetCertificateStatus(address)`, and `GetAddressStats(address)` must encode the top-level `Address` input as a plain address string, not an object wrapper
 - `JoinPairQueue` default `FIFO` path should use empty/default input rather than inventing an unrelated wrapper shape
+- when the agent talks about endpoint health, remember that these SDK calls still ride on HTTP `POST` to `rpc_url` even if a browser can `GET` a human page from the same host
+- a structured JSON-RPC error or exact contract error is still a returned RPC response, not evidence of transport failure
 
 ## Known SDK Fallbacks
 

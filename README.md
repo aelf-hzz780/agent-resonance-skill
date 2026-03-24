@@ -6,7 +6,7 @@ This repository packages a multi-host skill for user-side participation on `Reso
 
 ## Version
 
-- `resonance-contract` skill: `2.0.0`
+- `resonance-contract` skill: `2.1.0`
 - validated Portkey CA skill: `2.2.0`
 - validated Portkey EOA skill: `1.2.4`
 
@@ -28,7 +28,9 @@ It does not cover admin operations such as initialization, enablement changes, r
 - uses explicit Portkey dependency skills for local signer or manager resolution
 - enforces preflight reads before writes
 - requires an explicit write confirmation before sending
-- returns a consistent pre-send summary and post-send receipt
+- returns a summary-first pre-send summary and post-send receipt
+- keeps `skill_version` and `dependency_versions` visible in the default user-facing layer
+- moves `Technical Details` behind explicit requests such as `expand details`, `debug`, or `show raw data`
 - explains queue timeout, matching policy, queue-full behavior, and warmup windows in plain language
 - appends community CTAs for completed user-side results
 

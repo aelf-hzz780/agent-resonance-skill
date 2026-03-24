@@ -57,7 +57,11 @@ Use this flow only when all conditions below are true:
 20. Compute the join-side maximum reward check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 21. Stop if the remaining balance is lower than the join-side maximum reward check, because neither the immediate-match path nor the queued path can succeed.
 22. If the available reward balance is lower than the join-side maximum reward check but the remaining balance is still sufficient, explain that an immediate match may still succeed while a pure queue-enqueue result is not guaranteed by preflight.
-23. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, forwarded method chain, queue policy, queue timeout, queue capacity, remaining-balance and reward-balance reads, the join-side maximum reward check, and `user_explanation`.
+23. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, queue policy in plain language, timeout, whether the write can proceed, and whether the likely result is immediate match or queued entry
+    - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
+    - keep the raw execution address, target CA contract, forwarded method chain, queue stats, remaining-balance and reward-balance reads, the join-side maximum reward check, and other engineering fields in `Technical Details` unless the user explicitly asks for them
 24. Ask for explicit confirmation.
 25. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `JoinPairQueue(input)` call.
 26. If a `txId` is returned, share the `txId` and explorer link.
@@ -85,27 +89,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `AA/CA Join Pair Queue`
-- manager signer
-- resolved `AA/CA` holder address
-- `caHash` when available
-- target resonance contract in normalized full-address and raw-address form
-- target CA contract
-- dependency mode and detected Portkey CA skill version when practical
-- method chain `ManagerForwardCall -> JoinPairQueue(JoinPairQueueInput)`
-- current window and reward tiers
-- queue selection policy
-- `queue_timeout_seconds`
-- `queue_timeout_humanized`
-- `GetActivePendingPair` for the holder
-- `GetPairQueueStatus` for the holder
-- `GetPairQueueStats` when available
-- `GetRemainingBalance`
-- `GetRewardBalance` or `GetAvailableRewardBalance`
-- join-side maximum reward check
-- note when the current balances still leave open only the immediate-match path
-- `user_explanation` that translates timeout, FIFO or RANDOM behavior, queue-full eviction, exclusivity, and warmup into ordinary language
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, default or requested queue policy, timeout, whether the write can proceed, the main balance conclusion, likely outcome guidance, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current window and reward tiers, queue reads, queue stats, reward-balance reads, the join-side maximum reward check, the immediate-match-only note when relevant, and supporting `user_explanation`
 
 ## Example Reference
 

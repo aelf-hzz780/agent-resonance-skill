@@ -1,6 +1,6 @@
 ---
 name: resonance-contract
-version: 2.0.0
+version: 2.1.0
 description: Use when an agent needs to help a user participate in ResonanceContract through direct pair or automatic queue flows, route between EOA and AA/CA, create, confirm, join queue, leave queue, or diagnose pair, queue, warmup, or reward-balance state without handling admin operations.
 ---
 
@@ -10,7 +10,7 @@ Use this directory as the canonical `resonance-contract` skill package.
 
 ## Skill Version
 
-- Current skill version: `2.0.0`
+- Current skill version: `2.1.0`
 - If behavior seems inconsistent, report the `version` field from this file first.
 
 ## Scope
@@ -258,6 +258,13 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - Never ask the user for a direct-mode counterparty `email` or `caHash`; direct mode only accepts an on-chain `Address`.
 - Never continue if the caller address cannot be resolved from a local `EOA` or local `AA/CA` context.
 - Treat `AA`, `CA`, and `AA/CA` as the same `AA/CA` branch.
+- Do not treat a successful browser `GET` to `rpc_url` as proof that JSON-RPC is healthy; AElf SDK reads and writes still use HTTP `POST` against the same base endpoint.
+- When RPC requests hang or fail, do not jump directly to a root-cause claim such as `VPN`, `router`, `SSL`, or `certificate` unless the evidence clearly isolates that cause.
+- For any write reply or diagnostics-only reply, render a user-summary layer first and keep `Technical Details` behind explicit user intent such as `展开详情`, `debug`, `看链上参数`, `technical details`, or `show raw data`.
+- Keep `skill_version` and `dependency_versions` visible in the default user-facing layer.
+- Keep `dependency_mode` in `Technical Details` unless the dependency is in compatibility mode or dependency runtime metadata itself is unreliable.
+- Do not expose internal branch names such as `AA/CA Join Pair Queue` or `Status Query And Diagnostics` in the default user-facing layer unless the user explicitly asks for debug or Technical Details.
+- If preflight says a write is blocked, stop with a plain-language blocker summary and next step; do not ask the user to confirm a send that cannot proceed.
 - Always read `GetConfig()` before any write path.
 - Always normalize `resonance_contract_address` into both full-address and raw-address forms before any read or write.
 - For any `CreatePairRequest`, also read `GetPairStatus()`, `GetPendingPair()`, `GetActivePendingPair()` for caller and counterparty, `GetPairQueueStatus()` for caller and counterparty, and `GetRewardBalance()` or `GetAvailableRewardBalance()` first.
@@ -269,12 +276,16 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
   - if `GetPendingPair()` returns snapshots, prefer `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)` as the effective pair-specific maximum
 - For `CreatePairRequest` and `JoinPairQueue`, if `GetConfig().new_participation_available_time` is missing on an otherwise initialized contract, treat it as an abnormal state or decode issue first; only explain it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
 - For `CreatePairRequest` and `JoinPairQueue`, if `GetConfig().new_participation_available_time` is in the future, stop and explain the warmup window in plain language.
-- Before any write, show the resolved caller, target contract, method chain, current window, queue timeout, reward tiers, current pair or queue state, the relevant balance model, and an explicit confirmation request.
+- Before any write, show a summary-first pre-send reply:
+  - localized user-summary layer: operation, caller, target contract address, whether the write can proceed, expiry or timeout, the most important success condition or blocker, and an explicit confirmation request
+  - localized technical-details layer: resolved caller, target contract, method chain, current window, queue timeout, reward tiers, current pair or queue state, and the relevant balance model
 - For `AA/CA`, the write path must be `manager signer -> CA.ManagerForwardCall -> resonanceContract.<method>`.
 - For `AA/CA`, show both the manager signer and the resolved `AA/CA` holder address when available.
 - For `AA/CA`, if recovery or manager switching happened in the same session, verify that the target execution chain holder info already includes the chosen manager before sending.
 - After any submitted write that returns `txId`, include the `txId` and a chain explorer link.
-- After any submitted write, do a read-after-write summary from contract views.
+- After any submitted write, do a summary-first read-after-write reply:
+  - keep the default layer focused on result, `txId`, explorer link, key outcome fields, and the next practical meaning for the user
+  - keep the full contract-view snapshot in `Technical Details`
 - After any queue write, include plain-language explanation for timeout, default `FIFO`, explicit `RANDOM`, queue-full eviction behavior, and the direct-vs-queue exclusivity rule when relevant.
 - After a successful confirm, also query `GetStrongRecord`, `GetCertificateStatus`, and `GetAddressStats` for the participant addresses when practical.
 - When `GetCertificateStatus` shows `COMING_SOON` but also returns strong payload, explain that certificate issuance is not open yet but the strong record already exists.

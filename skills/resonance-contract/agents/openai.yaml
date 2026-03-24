@@ -1,7 +1,7 @@
 interface:
   display_name: "Resonance Contract"
   short_description: "User-side direct-pair and queue flows for EOA and AA/CA"
-  default_prompt: "Use $resonance-contract to help this user choose EOA or AA/CA, choose direct pair or automatic queue matching, create or confirm a pair request, join or leave the queue, and return the required pre-send or post-send summary with plain-language user guidance."
+  default_prompt: "Use $resonance-contract to help this user choose EOA or AA/CA, choose direct pair or automatic queue matching, create or confirm a pair request, join or leave the queue, and return a summary-first reply: keep `skill_version` and `dependency_versions` visible in the default user-facing layer, explain the action in plain language first, and only expand Technical Details when the user explicitly asks."
 
 policy:
   allow_implicit_invocation: true

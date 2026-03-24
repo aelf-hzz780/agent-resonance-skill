@@ -31,8 +31,9 @@
 
 ## Correct Output Shape
 
-- identify the branch as `EOA Create Pair Request`
-- show signer, counterparty, normalized contract addresses, method, config window, reward tiers, current pair state, address-scoped pending state, queue state, and create-side balance check
+- use a natural operation label such as `Create pair request` in the default user-facing layer instead of exposing the internal branch name
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout guidance, and the main blocker or balance conclusion
+- keep signer, counterparty, target raw execution address, method, config window, reward tiers, current pair state, address-scoped pending state, queue state, and create-side balance check in the localized technical-details layer unless the user asks to expand
 - include plain-language guidance when relevant, such as queue exclusivity, warmup, timeout, and queue-full implications
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available

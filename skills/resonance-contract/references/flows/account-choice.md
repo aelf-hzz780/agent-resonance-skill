@@ -61,12 +61,12 @@ Stop the current direct-path routing and restate the available user-side choices
 
 The reply should contain:
 
-- chosen flow: `Account Choice And Participation Mode`
 - `AA/CA vs EOA` explanation
 - `direct pair vs queue` explanation
 - explicit note that queue uses `FIFO` by default unless the user later requests another supported policy
 - explicit note that `CA` is accepted as the `AA/CA` alias
 - explicit reminder that only direct mode requires an on-chain `Address`
+- explicit expectation-setting that later write and diagnostics replies will default to a user summary first, while technical details stay on demand
 - explicit question asking the user to choose `AA/CA` or `EOA` only when account type is not already implied
 - explicit question asking the user to choose `direct pair` or `queue` only when the mode is not already implied
 - when the user tried `email` or `caHash` for direct mode, a correction that keeps them in onboarding and offers `provide an Address` or `switch to queue`

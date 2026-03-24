@@ -7,6 +7,7 @@ Use this branch for the `EOA` queue-leave path after account choice and particip
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
+- validated runtime version: `1.2.4`
 
 ## When To Use
 
@@ -28,22 +29,26 @@ Use this flow only when all conditions below are true:
 
 1. Validate that `chain_id`, `rpc_url`, and `resonance_contract_address` are available.
 2. Normalize the incoming contract address into display full-address form and raw execution form.
-3. Use the Portkey EOA skill to resolve the active local `EOA` signer.
-4. Read `GetConfig()`.
-5. Stop if the contract appears uninitialized.
-6. Record `request_expire_seconds` and `queue_capacity` from `GetConfig()`.
-7. Read `GetPairQueueStatus()` for the caller address.
-8. Read `GetPairQueueStats()` when practical.
-9. Stop if the caller is not currently in the queue, and explain in plain language that the entry may already have expired, matched, been actively left before, or been evicted when the queue was full.
-10. Show the pre-send summary using the output contract, including queue timeout, current queue status, queue stats, and `user_explanation`.
-11. Ask for explicit confirmation.
-12. Only after explicit confirmation, use the Portkey EOA skill to send `LeavePairQueue()`.
-13. If a `txId` is returned, share the `txId` and explorer link.
-14. Read `GetPairQueueStatus()` again for the caller address.
-15. Read `GetPairQueueStats()` again when practical.
-16. Infer the removal reason from the transaction result or event logs when possible.
-17. Return the read-after-write summary with post-leave queue state.
-18. Append the community CTA because the queue leave returned a clear non-error result.
+3. Detect the local Portkey EOA skill version when runtime metadata or local manifest data is available; if the version still cannot be resolved reliably, omit `dependency_versions.portkey_eoa` from the default visible layer and explain the omission only in technical details.
+4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
+5. Read `GetConfig()`.
+6. Stop if the contract appears uninitialized.
+7. Record `request_expire_seconds` and `queue_capacity` from `GetConfig()`.
+8. Read `GetPairQueueStatus()` for the caller address.
+9. Read `GetPairQueueStats()` when practical.
+10. Stop if the caller is not currently in the queue, and explain in plain language that the entry may already have expired, matched, been actively left before, or been evicted when the queue was full.
+11. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, whether the caller still appears to be queued, what leaving means in plain language, and whether the action can still do anything useful
+    - keep the raw execution address, queue status, queue stats, and supporting engineering context in `Technical Details` unless the user explicitly asks for them
+12. Ask for explicit confirmation.
+13. Only after explicit confirmation, use the Portkey EOA skill to send `LeavePairQueue()`.
+14. If a `txId` is returned, share the `txId` and explorer link.
+15. Read `GetPairQueueStatus()` again for the caller address.
+16. Read `GetPairQueueStats()` again when practical.
+17. Infer the removal reason from the transaction result or event logs when possible.
+18. Return the read-after-write summary with post-leave queue state.
+19. Append the community CTA because the queue leave returned a clear non-error result.
 
 ## Must-Stop Conditions
 
@@ -57,16 +62,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `EOA Leave Pair Queue`
-- resolved signer
-- target resonance contract in normalized full-address and raw-address form
-- method `LeavePairQueue()`
-- current `GetPairQueueStatus`
-- `queue_timeout_seconds`
-- `queue_timeout_humanized`
-- `GetPairQueueStats` when available
-- `user_explanation` that translates timeout and current queue state into ordinary language
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, whether the caller still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current queue status, queue timeout fields, queue stats, and supporting `user_explanation`
 
 ## Example Reference
 

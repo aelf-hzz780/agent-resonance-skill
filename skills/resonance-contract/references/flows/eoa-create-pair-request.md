@@ -7,6 +7,7 @@ Use this branch for the `EOA` direct-create path after account choice and partic
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
+- validated runtime version: `1.2.4`
 
 ## When To Use
 
@@ -34,36 +35,40 @@ Use this flow only when all conditions below are true:
 
 1. Validate that `chain_id`, `rpc_url`, and `resonance_contract_address` are available.
 2. Normalize the incoming contract address into display full-address form and raw execution form.
-3. Use the Portkey EOA skill to resolve the active local `EOA` signer.
-4. Validate the counterparty input as an on-chain `Address`.
-5. Stop if the counterparty address equals the resolved signer address.
-6. Read `GetConfig()`.
-7. Stop if the contract appears uninitialized, for example `token_symbol` is empty or `admin` is missing.
-8. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
-9. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
-10. Stop if `new_participation_available_time` is still in the future, and explain in plain language that new direct pairs and queue joins are warming up after an upgrade.
-11. Read `GetPairStatus()` for the unordered pair.
-12. Read `GetPendingPair()` for the unordered pair.
-13. Read `GetActivePendingPair()` for the caller address.
-14. Read `GetActivePendingPair()` for the counterparty address.
-15. Read `GetPairQueueStatus()` for the caller address.
-16. Read `GetPairQueueStatus()` for the counterparty address.
-17. Stop if `GetPairStatus().status == EXECUTED`.
-18. Stop if `GetPairStatus().status == PENDING` or `GetPendingPair()` returns an active pending pair for the unordered pair.
-19. Stop if either address already has another active pending pair, and preserve the exact contract meaning that one address cannot start another direct request while an active pair request already exists.
-20. Stop if either address is already in the pair queue, and explain the direct-versus-queue exclusivity rule in ordinary language.
-21. If a stale pending pair exists but is expired, explain that `CreatePairRequest` can auto-clear it in the same transaction.
-22. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
-23. Compute the create-side maximum reservation check as `2 * (config.success_amount + config.strong_bonus_amount)`.
-24. Stop if the available reward balance is lower than the create-side maximum reservation check.
-25. Show the pre-send summary using the output contract, including normalized contract addresses, pair-state reads, queue-state reads, reward-balance reads, queue timeout, and `user_explanation`.
-26. Ask for explicit confirmation.
-27. Only after explicit confirmation, use the Portkey EOA skill to send `CreatePairRequest(counterparty)`.
-28. If a `txId` is returned, share the `txId` and explorer link.
-29. Read `GetPairStatus()` again.
-30. Read `GetPendingPair()` again.
-31. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
-32. Append the community CTA because the pending pair was successfully created.
+3. Detect the local Portkey EOA skill version when runtime metadata or local manifest data is available; if the version still cannot be resolved reliably, omit `dependency_versions.portkey_eoa` from the default visible layer and explain the omission only in technical details.
+4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
+5. Validate the counterparty input as an on-chain `Address`.
+6. Stop if the counterparty address equals the resolved signer address.
+7. Read `GetConfig()`.
+8. Stop if the contract appears uninitialized, for example `token_symbol` is empty or `admin` is missing.
+9. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
+10. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
+11. Stop if `new_participation_available_time` is still in the future, and explain in plain language that new direct pairs and queue joins are warming up after an upgrade.
+12. Read `GetPairStatus()` for the unordered pair.
+13. Read `GetPendingPair()` for the unordered pair.
+14. Read `GetActivePendingPair()` for the caller address.
+15. Read `GetActivePendingPair()` for the counterparty address.
+16. Read `GetPairQueueStatus()` for the caller address.
+17. Read `GetPairQueueStatus()` for the counterparty address.
+18. Stop if `GetPairStatus().status == EXECUTED`.
+19. Stop if `GetPairStatus().status == PENDING` or `GetPendingPair()` returns an active pending pair for the unordered pair.
+20. Stop if either address already has another active pending pair, and preserve the exact contract meaning that one address cannot start another direct request while an active pair request already exists.
+21. Stop if either address is already in the pair queue, and explain the direct-versus-queue exclusivity rule in ordinary language.
+22. If a stale pending pair exists but is expired, explain that `CreatePairRequest` can auto-clear it in the same transaction.
+23. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
+24. Compute the create-side maximum reservation check as `2 * (config.success_amount + config.strong_bonus_amount)`.
+25. Stop if the available reward balance is lower than the create-side maximum reservation check.
+26. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, whether the write can proceed, timeout, queue or pending conflicts, and the balance conclusion
+    - keep the raw execution address, pair-state reads, queue-state reads, reward-balance reads, and other engineering fields in `Technical Details` unless the user explicitly asks for them
+27. Ask for explicit confirmation.
+28. Only after explicit confirmation, use the Portkey EOA skill to send `CreatePairRequest(counterparty)`.
+29. If a `txId` is returned, share the `txId` and explorer link.
+30. Read `GetPairStatus()` again.
+31. Read `GetPendingPair()` again.
+32. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
+33. Append the community CTA because the pending pair was successfully created.
 
 ## Must-Stop Conditions
 
@@ -85,20 +90,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `EOA Create Pair Request`
-- resolved signer
-- counterparty
-- target resonance contract in normalized full-address and raw-address form
-- method `CreatePairRequest(Address counterparty)`
-- current window and reward tiers
-- current pair state
-- `GetActivePendingPair` for caller and counterparty when practical
-- `GetPairQueueStatus` for caller and counterparty when practical
-- `GetRewardBalance` or `GetAvailableRewardBalance`
-- create-side maximum reservation check
-- expired-pending auto-clear note when relevant
-- `user_explanation` that translates timeout, exclusivity, warmup, and queue-full implications into ordinary language when relevant
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout or pending-validity guidance, the main blocker or balance conclusion, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, current pair state, address-scoped pending state, queue state, reward-balance reads, create-side maximum reservation check, expired-pending auto-clear note, and supporting `user_explanation`
 
 ## Example Reference
 

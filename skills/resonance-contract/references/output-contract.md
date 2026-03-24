@@ -1,6 +1,6 @@
 # Resonance Contract Output Contract
 
-Version: `2.0.0`
+Version: `2.1.0`
 
 Use this file for reply formatting after the branch flow is chosen.
 
@@ -17,17 +17,93 @@ Resolve `output_language` before rendering:
 - Once `output_language` is selected, keep all visible fixed strings monolingual.
 - Proper nouns, chain IDs, method names, URLs, and filesystem paths may remain as-is.
 
+## Two-Layer Response Contract
+
+Every write reply and diagnostics-only reply must render in two layers:
+
+- localized summary label as the default visible layer:
+  - `zh-CN`: `普通用户摘要`
+  - `en`: `User Summary`
+- localized technical layer label as the expandable engineering layer:
+  - `zh-CN`: `技术详情`
+  - `en`: `Technical Details`
+
+Render only the selected localized header for the chosen `output_language`.
+Do not show both language labels together in the same user-visible reply.
+
+Default rendering rules:
+
+- show `skill_version` and `dependency_versions` in the default visible layer
+- hide `dependency_mode` by default when it is just `normal`
+- move `dependency_mode` into the default visible layer only when the dependency is in compatibility mode or dependency runtime metadata itself is unreliable
+- keep `caHash`, the raw execution address, extra contract addresses such as the Portkey CA contract, method chain, full config reads, full pair or queue reads, and fallback evidence in `Technical Details` unless the user explicitly asks for them
+- end the default visible layer with a short single-language hint that `Technical Details` can be expanded on request
+- do not expose internal branch names in the default visible layer; use a natural operation label instead
+
+Host rendering rule:
+
+- if the host supports collapsible sections, render the technical layer collapsed by default
+- if the host is plain chat without collapsible UI, render only the default visible layer and the expansion hint in the first reply
+- in plain chat, do not print the technical-layer header or body until the user explicitly asks to expand
+- in plain chat, the default visible layer may be rendered as plain prose without a literal section header as long as its content still follows this contract
+
+Expand `Technical Details` when the user explicitly says:
+
+- `展开详情`
+- `debug`
+- `看链上参数`
+- `technical details`
+- `show raw data`
+- or explicitly asks for `caHash`, manager, holder, contract address, balance reads, queue stats, method chain, or raw fallback evidence
+
 ## Pre-Send Summary
 
-Every write reply must include a pre-send summary before asking for confirmation.
+Every write reply that can actually proceed must include a pre-send summary before asking for confirmation.
 
-Required fields for all write paths:
+If preflight blocks the write, return a blocked summary instead:
+
+- explain in plain language why the send cannot proceed
+- show the key blocker or missing condition
+- give the next practical step
+- do not ask for confirmation
+
+For a concrete blocked example, read [./examples/blocked-write-summary.md](./examples/blocked-write-summary.md).
+
+Default visible layer for all write paths:
 
 - `skill_version`
 - `dependency_versions` when available
-- `dependency_mode` when a fallback or compatibility path is in effect
-- chosen flow
 - caller identity
+- short natural operation name
+- target normalized full `resonance_contract_address`
+- whether the write can proceed now
+- expiry, timeout, or pending-validity anchor when relevant
+- the most important success condition or blocker
+- the practical outcome the user should expect after sending
+- explicit confirmation request
+- a short hint that `Technical Details` can be expanded on request
+
+Dependency-version rule:
+
+- show only the dependency versions that were actually used for the current path
+- `AA/CA` paths normally show `dependency_versions.portkey_ca`
+- `EOA` paths normally show `dependency_versions.portkey_eoa`
+- do not invent missing version values; if local metadata cannot be resolved, omit the missing field and explain it only in `Technical Details`
+
+`dependency_mode` only has these meanings in this skill:
+
+- `normal`
+- `compatibility`
+
+Do not invent extra values such as `fallback`. Runtime fallback behavior should be reported separately through `used_fallbacks` or fallback evidence.
+
+Add `dependency_mode` to the default visible layer only when the dependency is in compatibility mode or its runtime metadata is unreliable.
+
+`user_explanation` is the main content of the default visible layer rather than a minor appendix.
+
+Technical Details for all write paths:
+
+- chosen flow
 - input contract address when the incoming value differs from the normalized value
 - target normalized full `resonance_contract_address`
 - target raw `resonance_contract_address` used for execution
@@ -43,10 +119,8 @@ Required fields for all write paths:
   - `success_amount`
   - `strong_bonus_amount`
 - current participation-state summary from the relevant pair or queue reads
-- `user_explanation` when the reply needs plain-language guidance for ordinary users
-- explicit confirmation request
 
-Additional fields for `CreatePairRequest`:
+Additional Technical Details for `CreatePairRequest`:
 
 - pair participants in caller and counterparty form
 - direct-mode counterparty
@@ -57,7 +131,7 @@ Additional fields for `CreatePairRequest`:
 - create-side maximum reservation check
 - whether an expired old pending pair may be auto-cleared on create
 
-Additional fields for `ConfirmPairRequest`:
+Additional Technical Details for `ConfirmPairRequest`:
 
 - pair participants in caller and initiator form
 - active pending pair summary from `GetPendingPair`
@@ -66,7 +140,7 @@ Additional fields for `ConfirmPairRequest`:
 - baseline minimum pool check
 - effective pair-specific minimum pool check when snapshots are available
 
-Additional fields for `JoinPairQueue`:
+Additional Technical Details for `JoinPairQueue`:
 
 - queue selection policy
 - `queue_timeout_seconds`
@@ -80,14 +154,14 @@ Additional fields for `JoinPairQueue`:
 - note whether the current balances guarantee both outcomes or only leave open the immediate-match path
 - whether the result may be immediate match or queued entry
 
-Additional fields for `LeavePairQueue`:
+Additional Technical Details for `LeavePairQueue`:
 
 - current `GetPairQueueStatus` for the caller
 - `queue_timeout_seconds`
 - `queue_timeout_humanized`
 - `GetPairQueueStats` when available
 
-Additional fields for `AA/CA`:
+Additional Technical Details for `AA/CA`:
 
 - manager signer
 - resolved `AA/CA` holder address when available
@@ -99,7 +173,7 @@ Additional fields for `AA/CA`:
 
 When `user_explanation` is present, it must be written for ordinary users rather than contract engineers.
 
-It must not replace the technical fields above. It should summarize the practical meaning of those fields in short plain-language sentences.
+It now forms the backbone of the default visible layer and should summarize the practical meaning of the technical fields in short plain-language sentences.
 
 Queue-related replies must cover these topics when relevant:
 
@@ -124,6 +198,7 @@ Suggested plain-language content for `zh-CN`:
 - upgrade not finalized: `合约升级后的新参与入口还没重新开放，管理员完成 finalize 之前不能新发起配对或排队。`
 - warmup: `合约升级后可能会有一个冷却期，在这个时间点之前不能新发起配对或排队。`
 - certificate placeholder with strong payload: `证书功能还没开放，不过已经检测到你的强共振记录。`
+- technical details hint: `如需展开技术详情 / 看链上参数 / debug，我可以继续展开。`
 
 Suggested plain-language content for `en`:
 
@@ -137,24 +212,40 @@ Suggested plain-language content for `en`:
 - upgrade not finalized: `New participation is still closed after the upgrade. New direct pairs and queue joins cannot start until the admin finalizes the upgrade.`
 - warmup: `After an upgrade, the contract may enforce a warmup window before new direct pairs or queue joins are allowed.`
 - certificate placeholder with strong payload: `Certificate issuance is not open yet, but the contract already shows your strong-resonance record.`
+- technical details hint: `If you want Technical Details, raw on-chain parameters, or debug context, I can expand them.`
 
 ## Post-Send Receipt
 
-If the write returns `txId`, include:
+Default visible layer after a write should include:
 
-- `txId`
-- explorer link
+- `skill_version`
+- `dependency_versions` when available
+- `txId` when returned
+- explorer link when available
+- final status when available
+- short practical result such as `queued`, `pending`, `SUCCESS`, or `FAILED`
+- key outcome anchors such as `reward_each`, `executed_time`, `expire_time`, or matched-versus-queued result when relevant
+- a short exact chain error quote when the write failed
+- a short hint that `Technical Details` can be expanded on request
+
+Move `dependency_mode` into the default visible layer only when the dependency is in compatibility mode or its runtime metadata is unreliable.
+
+Technical Details after a write should include:
+
 - short note if the first lookup is still pending
-- `used_fallbacks` when a compatibility path was needed
-
-If the final chain result is available, include:
-
-- final status
+- `used_fallbacks` whenever any compatibility handling, event-decoding fallback, manifest-version override, or read fallback was actually used
 - exact chain error when failed
 
 ## Read-After-Write Summary
 
-After `CreatePairRequest`, summarize:
+After `CreatePairRequest`, keep the default visible layer focused on:
+
+- pending pair created or not
+- `txId` and explorer link
+- `expire_time`
+- whether the user now needs the counterparty to confirm
+
+Put these in `Technical Details`:
 
 - `GetPairStatus`
 - `GetPendingPair`
@@ -166,7 +257,15 @@ After `CreatePairRequest`, summarize:
 - `strong_bonus_amount_snapshot`
 - `window_end_time` when available
 
-After `ConfirmPairRequest`, summarize:
+After `ConfirmPairRequest`, keep the default visible layer focused on:
+
+- final execution result
+- `txId` and explorer link
+- `outcome`
+- `reward_each`
+- `executed_time`
+
+Put these in `Technical Details`:
 
 - `GetPairStatus`
 - `status`
@@ -179,7 +278,13 @@ After `ConfirmPairRequest`, summarize:
 - `GetCertificateStatus` for participant addresses when practical
 - if `GetPairStatus` or `GetCertificateStatus` failed because of an SDK decode issue, say so explicitly and cite the fallback source used instead
 
-After `JoinPairQueue`, summarize one of these outcomes:
+After `JoinPairQueue`, keep the default visible layer focused on one of these outcomes:
+
+- immediate match happened now
+- caller successfully entered the queue
+- caller was blocked before send
+
+Put these detailed fields in `Technical Details`:
 
 - if the transaction matched immediately:
   - `PairResonated` event fields
@@ -199,14 +304,34 @@ After `JoinPairQueue`, summarize one of these outcomes:
   - `window_end_time`
   - `GetPairQueueStats`
 
-After `LeavePairQueue`, summarize:
+After `LeavePairQueue`, keep the default visible layer focused on:
+
+- whether the caller is still in queue
+- whether the leave actually succeeded, or whether the user was already expired, already matched, or already absent
+
+Put these in `Technical Details`:
 
 - `GetPairQueueStatus`
 - whether the caller is still in queue
 - `GetPairQueueStats`
 - removal reason when it can be inferred from the transaction result or event logs
 
-For diagnostics-only replies, summarize the relevant subset of:
+## Diagnostics-Only Replies
+
+Default visible layer for diagnostics should include:
+
+- `skill_version`
+- `dependency_versions` when available
+- target normalized full `resonance_contract_address` when known
+- current status conclusion
+- the most important time, status, or balance anchor
+- the practical reason for the current state
+- the next practical step for the user
+- a short hint that `Technical Details` can be expanded on request
+
+Move `dependency_mode` into the default visible layer only when the dependency is in compatibility mode or its runtime metadata is unreliable.
+
+Technical Details for diagnostics should include the relevant subset of:
 
 - `GetConfig`
 - `GetPairStatus`
@@ -220,6 +345,8 @@ For diagnostics-only replies, summarize the relevant subset of:
 - `GetStrongRecord`
 - `GetCertificateStatus`
 - fallback evidence used
+
+Always end the default diagnostics layer with a short hint that `Technical Details` can be expanded on request.
 
 ## Community CTA Policy
 
