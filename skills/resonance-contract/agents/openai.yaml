@@ -1,7 +1,7 @@
 interface:
   display_name: "Resonance Contract"
-  short_description: "User-side resonance pairing flows for EOA and AA/CA"
-  default_prompt: "Use $resonance-contract to help this user choose EOA or AA/CA, create or confirm a resonance pair request, and return the required pre-send or post-send summary."
+  short_description: "User-side direct-pair and queue flows for EOA and AA/CA"
+  default_prompt: "Use $resonance-contract to help this user choose EOA or AA/CA, choose direct pair or automatic queue matching, create or confirm a pair request, join or leave the queue, and return the required pre-send or post-send summary with plain-language user guidance."
 
 policy:
   allow_implicit_invocation: true

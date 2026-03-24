@@ -23,15 +23,21 @@
 
 - local `AA/CA` holder address cannot be resolved
 - no usable manager signer can be resolved
+- target execution chain holder info does not yet include the chosen manager signer
 - counterparty is invalid
+- contract warmup has not finished yet
 - pair already resonated
 - pair already pending
+- holder or counterparty already has another active pending pair
+- holder or counterparty is already in the queue
+- available reward balance is too low for a new direct reservation
 
 ## Correct Output Shape
 
 - identify the branch as `AA/CA Create Pair Request`
 - explain that `CA` still maps to the `AA/CA` branch
-- show manager signer, holder address, `caHash` when available, counterparty, target contracts, and forwarded method chain
+- show manager signer, holder address, `caHash` when available, counterparty, normalized target contracts, forwarded method chain, address-scoped pending state, queue state, and create-side balance check
+- include plain-language guidance when relevant, such as queue exclusivity, warmup, timeout, and queue-full implications
 - ask for explicit confirmation before sending
-- after sending, return `txId`, explorer link, and pending pair summary
+- after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available
 - append community CTA because a pending pair was created

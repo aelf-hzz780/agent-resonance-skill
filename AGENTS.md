@@ -17,7 +17,9 @@ Apply this workflow when the user asks for:
 - `EOA` or `AA/CA` account routing for user-side resonance participation
 - `CreatePairRequest`
 - `ConfirmPairRequest`
-- pair status lookup, pending or expired diagnosis, or already-resonated diagnosis
+- `JoinPairQueue`
+- `LeavePairQueue`
+- pair status lookup, queue status lookup, pending or expired diagnosis, already-resonated diagnosis, warmup diagnosis, or reward-balance diagnosis
 
 ## Operating Rule
 

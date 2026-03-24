@@ -1,5 +1,5 @@
 ---
-description: Apply the ResonanceContract user-side workflow when the user asks for resonance pairing, account routing, create or confirm flows, or pair status diagnosis.
+description: Apply the ResonanceContract user-side workflow when the user asks for resonance pairing, account routing, direct or queue participation, create or confirm flows, join or leave queue flows, or pair or queue diagnosis.
 alwaysApply: false
 ---
 
@@ -11,7 +11,9 @@ Use the `resonance-contract` workflow from this repository when the user asks fo
 - `EOA` or `AA/CA` routing for user-side participation
 - `CreatePairRequest`
 - `ConfirmPairRequest`
-- pair status lookup, pending diagnosis, expired diagnosis, or already-resonated diagnosis
+- `JoinPairQueue`
+- `LeavePairQueue`
+- pair status lookup, queue status lookup, pending diagnosis, expired diagnosis, already-resonated diagnosis, warmup diagnosis, or reward-balance diagnosis
 
 ## Canonical Package
 

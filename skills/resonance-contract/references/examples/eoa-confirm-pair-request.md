@@ -29,7 +29,9 @@
 ## Correct Output Shape
 
 - identify the branch as `EOA Confirm Pair Request`
-- show signer, initiator, contract, method, active pending pair summary, and pool check summary
+- show signer, initiator, normalized contract addresses, method, active pending pair summary, and pool check summary
+- keep `GetRemainingBalance()` as the real confirm-side gate, and only treat `GetRewardBalance()` or `GetAvailableRewardBalance()` as diagnostics
+- if `GetCertificateStatus()` is read after success, explain that certificate issuance is still `COMING_SOON` even when strong-resonance payload exists
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, final pair outcome, and any strong-record updates
 - append community CTA because the confirm path returned a clear result

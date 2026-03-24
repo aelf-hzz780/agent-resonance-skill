@@ -1,6 +1,6 @@
 # AA/CA Confirm Pair Request
 
-Use this branch for the `AA/CA` confirm path after account choice is complete.
+Use this branch for the `AA/CA` direct-confirm path after account choice and participation-mode choice are complete.
 
 ## Required Dependency
 
@@ -15,6 +15,7 @@ Use this flow only when all conditions below are true:
 
 - the user explicitly chose `AA`, `CA`, or `AA/CA`
 - a local `AA/CA` context is already available
+- the user chose direct pair mode rather than queue mode
 - the user wants to confirm an existing pending pair
 
 ## Required Facts
@@ -24,7 +25,9 @@ Use this flow only when all conditions below are true:
 - Initiator input must be a valid on-chain `Address`
 - Caller must be the pending counterparty
 - `ConfirmPairRequest` requires an active pending pair
-- `ConfirmPairRequest` requires the reward pool to cover the maximum reward tier before randomness is sampled
+- `ConfirmPairRequest` requires the raw remaining reward pool to cover the maximum reward tier before randomness is sampled
+- `ConfirmPairRequest` is not blocked by `new_participation_available_time`; the warmup gate applies to new create/join participation only
+- `GetCertificateStatus()` still reports `COMING_SOON`, but it may also carry strong-record payload when a strong resonance already exists
 
 ## Step-By-Step
 
@@ -37,7 +40,7 @@ Use this flow only when all conditions below are true:
 7. Stop if the initiator address equals the resolved `AA/CA` holder address.
 8. Read `GetConfig()`.
 9. Stop if the contract appears uninitialized.
-10. Record the current window and reward tiers from `GetConfig()`.
+10. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
 11. Read `GetPairStatus()` for the unordered pair using `AA/CA holder address` and `initiator`.
 12. Read `GetPendingPair()` for the unordered pair.
 13. Stop if `GetPairStatus().status == EXECUTED`.
@@ -45,20 +48,21 @@ Use this flow only when all conditions below are true:
 15. Stop if the pending pair initiator does not match the requested initiator.
 16. Stop if the resolved `AA/CA` holder address does not match the pending pair counterparty.
 17. Read `GetRemainingBalance()`.
-18. Compute the baseline minimum pool check as `2 * (config.success_amount + config.strong_bonus_amount)`.
-19. If pending snapshots are available, also compute the effective pair-specific minimum pool check as `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)`.
-20. Stop if the remaining balance is lower than the effective pair-specific minimum pool check.
-21. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, and the forwarded method chain.
-22. Ask for explicit confirmation.
-23. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `ConfirmPairRequest(initiator)` call.
-24. If a `txId` is returned, share the `txId` and explorer link.
-25. Read `GetPairStatus()` again.
-26. Read `GetAddressStats()` for both participant addresses when practical.
-27. Read `GetStrongRecord()` for both participant addresses when practical.
-28. Read `GetCertificateStatus()` for both participant addresses when practical.
-29. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
-30. Return the read-after-write summary with outcome, `reward_each`, and any strong-record updates.
-31. Append the community CTA because the confirm path returned a clear result.
+18. Read `GetRewardBalance()` and `GetAvailableRewardBalance()` when practical for diagnostic context, but keep `GetRemainingBalance()` as the actual confirm-side gate.
+19. Compute the baseline minimum pool check as `2 * (config.success_amount + config.strong_bonus_amount)`.
+20. If pending snapshots are available, also compute the effective pair-specific minimum pool check as `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)`.
+21. Stop if the remaining balance is lower than the effective pair-specific minimum pool check.
+22. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, forwarded method chain, active pending pair summary, raw balance check, optional reward-balance diagnostics, and `user_explanation`.
+23. Ask for explicit confirmation.
+24. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `ConfirmPairRequest(initiator)` call.
+25. If a `txId` is returned, share the `txId` and explorer link.
+26. Read `GetPairStatus()` again.
+27. Read `GetAddressStats()` for both participant addresses when practical.
+28. Read `GetStrongRecord()` for both participant addresses when practical.
+29. Read `GetCertificateStatus()` for both participant addresses when practical.
+30. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
+31. Return the read-after-write summary with outcome, `reward_each`, and any strong-record or certificate-payload updates.
+32. Append the community CTA because the confirm path returned a clear result.
 
 ## Must-Stop Conditions
 
@@ -91,7 +95,11 @@ The response before sending should contain:
 - method chain `ManagerForwardCall -> ConfirmPairRequest(Address initiator)`
 - current window and reward tiers
 - active pending pair summary
-- remaining balance and minimum pool checks
+- `GetRemainingBalance`
+- baseline minimum pool check
+- effective pair-specific minimum pool check when snapshots are available
+- `GetRewardBalance` and `GetAvailableRewardBalance` when practical for diagnostics
+- `user_explanation` that clarifies pending validity, confirm-side balance semantics, and certificate placeholder behavior when relevant
 - explicit confirmation request
 
 ## Example Reference
