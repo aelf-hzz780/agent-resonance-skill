@@ -22,13 +22,18 @@
 
 - counterparty is invalid
 - counterparty equals caller
+- contract warmup has not finished yet
 - pair already resonated
 - pair already pending
+- caller or counterparty already has another active pending pair
+- caller or counterparty is already in the queue
+- available reward balance is too low for a new direct reservation
 
 ## Correct Output Shape
 
 - identify the branch as `EOA Create Pair Request`
-- show signer, counterparty, contract, method, config window, reward tiers, and current pair state
+- show signer, counterparty, normalized contract addresses, method, config window, reward tiers, current pair state, address-scoped pending state, queue state, and create-side balance check
+- include plain-language guidance when relevant, such as queue exclusivity, warmup, timeout, and queue-full implications
 - ask for explicit confirmation before sending
-- after sending, return `txId`, explorer link, and pending pair summary
+- after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available
 - append community CTA because a pending pair was created

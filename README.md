@@ -6,7 +6,7 @@ This repository packages a multi-host skill for user-side participation on `Reso
 
 ## Version
 
-- `resonance-contract` skill: `1.2.0`
+- `resonance-contract` skill: `2.0.0`
 - validated Portkey CA skill: `2.2.0`
 - validated Portkey EOA skill: `1.2.4`
 
@@ -15,26 +15,34 @@ It focuses only on:
 - account choice and local context readiness
 - `CreatePairRequest`
 - `ConfirmPairRequest`
-- pair status lookup and diagnostics
+- `JoinPairQueue`
+- `LeavePairQueue`
+- pair, queue, warmup, and reward-balance diagnostics
 
 It does not cover admin operations such as initialization, enablement changes, reward updates, withdrawals, or admin transfer.
 
 ## What This Skill Does
 
 - routes the user between `AA/CA` and `EOA`
+- routes the user between direct pair and automatic queue participation
 - uses explicit Portkey dependency skills for local signer or manager resolution
 - enforces preflight reads before writes
 - requires an explicit write confirmation before sending
 - returns a consistent pre-send summary and post-send receipt
+- explains queue timeout, matching policy, queue-full behavior, and warmup windows in plain language
 - appends community CTAs for completed user-side results
 
 ## Supported Branches
 
-- Account Choice And Onboarding
+- Account Choice And Participation Mode
 - EOA Create Pair Request
 - EOA Confirm Pair Request
+- EOA Join Pair Queue
+- EOA Leave Pair Queue
 - AA/CA Create Pair Request
 - AA/CA Confirm Pair Request
+- AA/CA Join Pair Queue
+- AA/CA Leave Pair Queue
 - Status Query And Diagnostics
 
 ## Canonical Package
@@ -46,6 +54,13 @@ It does not cover admin operations such as initialization, enablement changes, r
 
 ## Quick Start
 
+This skill now defaults to the current canonical `tDVV` deployment:
+
+- raw address: `28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy`
+- full address: `ELF_28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy_tDVV`
+
+Only provide `resonance_contract_address` explicitly when you want to override that default deployment.
+
 Use this prompt with an agent that supports workspace or local skills:
 
 ```text
@@ -53,10 +68,23 @@ Use $resonance-contract to help me resonate on ResonanceContract.
 I want to use AA/CA and create a pair request for this counterparty address: <address>.
 ```
 
+For queue participation:
+
+```text
+Use $resonance-contract to help me join the resonance queue on ResonanceContract.
+I want to use AA/CA, I do not have a counterparty address, and I want the default queue mode.
+```
+
 For a status lookup:
 
 ```text
 Use $resonance-contract to check the pair status between these two addresses on ResonanceContract: <address-a> and <address-b>.
+```
+
+For queue or warmup diagnostics:
+
+```text
+Use $resonance-contract to check whether this address is still in the queue or blocked by warmup on ResonanceContract: <address>.
 ```
 
 ## Host Layout

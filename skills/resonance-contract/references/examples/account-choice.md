@@ -1,4 +1,4 @@
-# Example: Account Choice And Onboarding
+# Example: Account Choice And Participation Mode
 
 ## User Input
 
@@ -7,11 +7,13 @@
 
 ## Agent Should Choose
 
-- `Account Choice And Onboarding`
+- `Account Choice And Participation Mode`
 
 ## Must Ask Or Confirm
 
-- ask the user to choose `AA/CA` or `EOA`
+- ask the user to choose only the still-missing dimension
+- ask the user to choose `AA/CA` or `EOA` only when account type is not already implied
+- ask the user to choose `direct pair` or `queue` only when the mode is not already implied by the request
 
 ## Must Not Ask
 
@@ -22,7 +24,12 @@
 ## Correct Output Shape
 
 - explain `AA/CA` vs `EOA`
+- explain `direct pair` vs `queue`
+- explain that queue uses `FIFO` by default unless the user later requests another supported policy
 - note that `CA` is accepted as the `AA/CA` alias
 - recommend `AA/CA` when the user has no strong preference
-- remind the user that the counterparty input must be an on-chain `Address`
-- ask the user to choose `AA/CA` or `EOA`
+- remind the user that only direct mode requires a counterparty on-chain `Address`
+- explain in plain language that queue entries also expire and can be affected by queue capacity
+- if the user tried to use `email` or `caHash` for direct mode, keep the user in routing and offer `provide an Address` or `switch to queue`
+- ask the user to choose `AA/CA` or `EOA` only when account type is not already implied
+- ask the user to choose `direct pair` or `queue` only when the mode is not already implied
