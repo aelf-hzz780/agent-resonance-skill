@@ -52,7 +52,11 @@ Use this flow only when all conditions below are true:
 19. Compute the baseline minimum pool check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 20. If pending snapshots are available, also compute the effective pair-specific minimum pool check as `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)`.
 21. Stop if the remaining balance is lower than the effective pair-specific minimum pool check.
-22. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, forwarded method chain, active pending pair summary, raw balance check, optional reward-balance diagnostics, and `user_explanation`.
+22. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, whether a valid pending pair exists, how long it remains confirmable, and whether the confirm-side balance check passes
+    - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
+    - keep the raw execution address, target CA contract, forwarded method chain, active pending pair summary, raw balance check, optional reward-balance diagnostics, and other engineering fields in `Technical Details` unless the user explicitly asks for them
 23. Ask for explicit confirmation.
 24. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `ConfirmPairRequest(initiator)` call.
 25. If a `txId` is returned, share the `txId` and explorer link.
@@ -84,23 +88,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `AA/CA Confirm Pair Request`
-- manager signer
-- resolved `AA/CA` holder address
-- `caHash` when available
-- initiator
-- target resonance contract in normalized full-address and raw-address form
-- target CA contract
-- dependency mode and detected Portkey CA skill version when practical
-- method chain `ManagerForwardCall -> ConfirmPairRequest(Address initiator)`
-- current window and reward tiers
-- active pending pair summary
-- `GetRemainingBalance`
-- baseline minimum pool check
-- effective pair-specific minimum pool check when snapshots are available
-- `GetRewardBalance` and `GetAvailableRewardBalance` when practical for diagnostics
-- `user_explanation` that clarifies pending validity, confirm-side balance semantics, and certificate placeholder behavior when relevant
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, initiator, target normalized full `resonance_contract_address`, whether the write can proceed, pending validity window, the confirm-side balance conclusion, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current window and reward tiers, active pending pair summary, `GetRemainingBalance`, optional `GetRewardBalance` and `GetAvailableRewardBalance`, pool checks, and supporting `user_explanation`
 
 ## Example Reference
 

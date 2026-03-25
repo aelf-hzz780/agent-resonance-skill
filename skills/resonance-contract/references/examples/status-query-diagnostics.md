@@ -20,11 +20,10 @@
 
 ## Correct Output Shape
 
-- identify the branch as `Status Query And Diagnostics`
-- summarize `GetConfig`, including `new_participation_available_time` and `queue_capacity`
-- when the input is pair-oriented, summarize `GetPairStatus` and `GetPendingPair`
-- when the input is address-oriented, summarize `GetActivePendingPair`, `GetPairQueueStatus`, and `GetPairQueueStats` when relevant
+- use a natural operation label such as `查询当前状态` or `Check current status`, rather than exposing the internal branch name
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, target normalized full `resonance_contract_address` when known, the state conclusion, the most important time or balance anchor, the practical reason for that state, and the next practical step
+- keep `GetConfig`, pair reads, address-scoped queue or pending reads, and queue stats in the localized technical-details layer unless the user asks to expand
 - explain whether the observed state is pending, executed, queued, missing, likely expired, blocked by warmup, or blocked by balance semantics
-- if executed, include outcome details and fallbacks used
+- if executed, keep fallback evidence and the exact fallback route in the localized technical-details layer unless the user explicitly asks to expand
 - if certificate status is relevant, explain that it can remain `COMING_SOON` while still exposing strong-resonance payload
 - if it is a hard-stop diagnosis, do not append community CTA

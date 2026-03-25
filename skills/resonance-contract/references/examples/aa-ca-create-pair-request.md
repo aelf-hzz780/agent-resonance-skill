@@ -34,10 +34,10 @@
 
 ## Correct Output Shape
 
-- identify the branch as `AA/CA Create Pair Request`
+- use a natural operation label such as `发起配对请求` or `Create pair request`, rather than exposing the internal branch name
 - explain that `CA` still maps to the `AA/CA` branch
-- show manager signer, holder address, `caHash` when available, counterparty, normalized target contracts, forwarded method chain, address-scoped pending state, queue state, and create-side balance check
-- include plain-language guidance when relevant, such as queue exclusivity, warmup, timeout, and queue-full implications
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout guidance, and the main blocker or balance conclusion
+- keep manager signer, holder address, `caHash`, target raw execution address, target CA contract, forwarded method chain, address-scoped pending state, queue state, and create-side balance check in the localized technical-details layer unless the user asks to expand
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available
 - append community CTA because a pending pair was created

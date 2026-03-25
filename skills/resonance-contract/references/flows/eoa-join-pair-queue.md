@@ -7,6 +7,7 @@ Use this branch for the `EOA` queue-join path after account choice and participa
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
+- validated runtime version: `1.2.4`
 
 ## When To Use
 
@@ -35,34 +36,38 @@ Use this flow only when all conditions below are true:
 
 1. Validate that `chain_id`, `rpc_url`, and `resonance_contract_address` are available.
 2. Normalize the incoming contract address into display full-address form and raw execution form.
-3. Use the Portkey EOA skill to resolve the active local `EOA` signer.
-4. Resolve the requested queue selection policy.
-5. If the user did not specify a policy, keep the input empty or default and explain that the effective selection policy will be `FIFO`.
-6. Read `GetConfig()`.
-7. Stop if the contract appears uninitialized.
-8. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
-9. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
-10. Stop if `new_participation_available_time` is still in the future, and explain in plain language that new direct pairs and queue joins are warming up after an upgrade.
-11. Read `GetActivePendingPair()` for the caller address.
-12. Read `GetPairQueueStatus()` for the caller address.
-13. Stop if the caller already has an active pending pair.
-14. Stop if the caller is already in the pair queue.
-15. Read `GetRemainingBalance()`.
-16. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
-17. Read `GetPairQueueStats()` when practical.
-18. Compute the join-side maximum reward check as `2 * (config.success_amount + config.strong_bonus_amount)`.
-19. Stop if the remaining balance is lower than the join-side maximum reward check, because neither the immediate-match path nor the queued path can succeed.
-20. If the available reward balance is lower than the join-side maximum reward check but the remaining balance is still sufficient, explain that an immediate match may still succeed while a pure queue-enqueue result is not guaranteed by preflight.
-21. Show the pre-send summary using the output contract, including queue policy, queue timeout, queue capacity, remaining-balance and reward-balance reads, the join-side maximum reward check, and `user_explanation`.
-22. Ask for explicit confirmation.
-23. Only after explicit confirmation, use the Portkey EOA skill to send `JoinPairQueue(input)`.
-24. If a `txId` is returned, share the `txId` and explorer link.
-25. Inspect the transaction result and logs.
-26. If a `PairResonated` event is present, treat the result as immediate match and summarize the matched addresses, `outcome`, `random_number`, `reward_each`, and `executed_time`.
-27. If the caller remained queued, read `GetPairQueueStatus()` for the caller and `GetPairQueueStats()` again.
-28. Read `GetAddressStats()`, `GetStrongRecord()`, and `GetCertificateStatus()` when practical if the join matched immediately.
-29. Return the read-after-write summary as either `queued` or `immediate match`.
-30. Append the community CTA because the queue join returned a clear non-error result.
+3. Detect the local Portkey EOA skill version when runtime metadata or local manifest data is available; if the version still cannot be resolved reliably, omit `dependency_versions.portkey_eoa` from the default visible layer and explain the omission only in technical details.
+4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
+5. Resolve the requested queue selection policy.
+6. If the user did not specify a policy, keep the input empty or default and explain that the effective selection policy will be `FIFO`.
+7. Read `GetConfig()`.
+8. Stop if the contract appears uninitialized.
+9. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
+10. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
+11. Stop if `new_participation_available_time` is still in the future, and explain in plain language that new direct pairs and queue joins are warming up after an upgrade.
+12. Read `GetActivePendingPair()` for the caller address.
+13. Read `GetPairQueueStatus()` for the caller address.
+14. Stop if the caller already has an active pending pair.
+15. Stop if the caller is already in the pair queue.
+16. Read `GetRemainingBalance()`.
+17. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
+18. Read `GetPairQueueStats()` when practical.
+19. Compute the join-side maximum reward check as `2 * (config.success_amount + config.strong_bonus_amount)`.
+20. Stop if the remaining balance is lower than the join-side maximum reward check, because neither the immediate-match path nor the queued path can succeed.
+21. If the available reward balance is lower than the join-side maximum reward check but the remaining balance is still sufficient, explain that an immediate match may still succeed while a pure queue-enqueue result is not guaranteed by preflight.
+22. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, queue policy in plain language, timeout, whether the write can proceed, and whether the likely result is immediate match or queued entry
+    - keep the raw execution address, queue stats, remaining-balance and reward-balance reads, the join-side maximum reward check, and other engineering fields in `Technical Details` unless the user explicitly asks for them
+23. Ask for explicit confirmation.
+24. Only after explicit confirmation, use the Portkey EOA skill to send `JoinPairQueue(input)`.
+25. If a `txId` is returned, share the `txId` and explorer link.
+26. Inspect the transaction result and logs.
+27. If a `PairResonated` event is present, treat the result as immediate match and summarize the matched addresses, `outcome`, `random_number`, `reward_each`, and `executed_time`.
+28. If the caller remained queued, read `GetPairQueueStatus()` for the caller and `GetPairQueueStats()` again.
+29. Read `GetAddressStats()`, `GetStrongRecord()`, and `GetCertificateStatus()` when practical if the join matched immediately.
+30. Return the read-after-write summary as either `queued` or `immediate match`.
+31. Append the community CTA because the queue join returned a clear non-error result.
 
 ## Must-Stop Conditions
 
@@ -79,23 +84,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `EOA Join Pair Queue`
-- resolved signer
-- target resonance contract in normalized full-address and raw-address form
-- method `JoinPairQueue(JoinPairQueueInput)`
-- current window and reward tiers
-- queue selection policy
-- `queue_timeout_seconds`
-- `queue_timeout_humanized`
-- `GetActivePendingPair` for the caller
-- `GetPairQueueStatus` for the caller
-- `GetPairQueueStats` when available
-- `GetRemainingBalance`
-- `GetRewardBalance` or `GetAvailableRewardBalance`
-- join-side maximum reward check
-- note when the current balances still leave open only the immediate-match path
-- `user_explanation` that translates timeout, FIFO or RANDOM behavior, queue-full eviction, exclusivity, and warmup into ordinary language
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, default or requested queue policy, timeout, whether the write can proceed, the main balance conclusion, likely outcome guidance, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, queue reads, queue stats, reward-balance reads, the join-side maximum reward check, the immediate-match-only note when relevant, and supporting `user_explanation`
 
 ## Example Reference
 

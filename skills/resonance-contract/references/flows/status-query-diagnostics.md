@@ -53,6 +53,9 @@ Read these when relevant to the user input:
 - if a join-path diagnosis shows sufficient `GetRemainingBalance()` but low `GetAvailableRewardBalance()`, explain that immediate match may still succeed while a pure queued result is not guaranteed
 - if a confirm-path diagnosis shows low `GetRemainingBalance()`, explain that confirm uses the raw remaining reward pool check rather than the available-balance reservation check
 - if `GetCertificateStatus()` reports `COMING_SOON` but also shows `has_strong == true`, explain that certificate issuance is not open yet while the strong-resonance record already exists
+- if the endpoint host is browser-reachable but SDK or JSON-RPC calls to `rpc_url` do not return a usable response, explain that `GET` reachability and JSON-RPC `POST` health are different checks
+- if the available evidence is only `GET works`, `TLS works`, and JSON-RPC `POST` times out, hangs, resets, returns empty, or otherwise never yields a usable JSON-RPC response, report an RPC transport problem in the current environment without claiming a specific root cause such as `VPN`, `router`, `SSL`, `certificate`, or `firewall`
+- if JSON-RPC `POST` returns a structured JSON-RPC error, exact contract error, parameter-validation error, or ABI/decode error, explain that this is a returned RPC response rather than a transport failure
 
 ## Exact Error Mapping
 
@@ -90,18 +93,10 @@ Stop immediately if any of the following is true:
 
 The reply should contain:
 
-- chosen flow: `Status Query And Diagnostics`
-- current config summary, including `new_participation_available_time` and `queue_capacity`
-- current pair status summary when a pair query was provided
-- current address-scoped pending or queue summary when an address query was provided
-- pending-pair details when active
-- queue details when active
-- `GetPairQueueStats` when queue-capacity diagnosis is relevant
-- `GetRewardBalance`, `GetAvailableRewardBalance`, or `GetRemainingBalance` when balance diagnosis is relevant
-- executed outcome details when available
-- `GetStrongRecord` and `GetCertificateStatus` when strong-result diagnosis is relevant
-- fallback evidence used when executed-state views are unavailable
-- `user_explanation` for queue timeout, queue-full eviction, direct-versus-queue exclusivity, warmup, and balance-model differences when relevant
+- localized user-summary layer first with `skill_version`, `dependency_versions`, target normalized full `resonance_contract_address` when known, the current status conclusion, the most important time, status, or balance anchor, the practical reason for that state, and the next suggested action
+- surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the diagnosis
+- localized technical-details layer on demand with chosen flow, current config summary, pair status summary, address-scoped pending or queue summary, pending-pair details, queue details, queue stats, balance reads, executed outcome details, `GetStrongRecord`, `GetCertificateStatus`, fallback evidence, and supporting `user_explanation`
+- when the diagnosis involves RPC reachability, keep the default layer wording bounded to observed facts and avoid over-attributing the root cause
 - no community CTA for hard-stop or failure diagnoses
 
 ## Example Reference

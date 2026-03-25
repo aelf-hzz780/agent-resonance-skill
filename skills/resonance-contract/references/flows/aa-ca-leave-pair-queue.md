@@ -39,7 +39,11 @@ Use this flow only when all conditions below are true:
 9. Read `GetPairQueueStatus()` for the `AA/CA` holder address.
 10. Read `GetPairQueueStats()` when practical.
 11. Stop if the holder is not currently in the queue, and explain in plain language that the entry may already have expired, matched, been actively left before, or been evicted when the queue was full.
-12. Show the pre-send summary using the output contract, including normalized contract addresses, dependency mode, forwarded method chain, queue timeout, current queue status, queue stats, and `user_explanation`.
+12. Show the pre-send summary using the output contract:
+    - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
+    - keep the default layer focused on target contract address, whether the holder still appears queued, what leaving means in plain language, and whether the action can still do anything useful
+    - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
+    - keep the raw execution address, target CA contract, forwarded method chain, queue timeout, current queue status, queue stats, and other engineering fields in `Technical Details` unless the user explicitly asks for them
 13. Ask for explicit confirmation.
 14. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `LeavePairQueue()` call.
 15. If a `txId` is returned, share the `txId` and explorer link.
@@ -63,20 +67,8 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- chosen flow: `AA/CA Leave Pair Queue`
-- manager signer
-- resolved `AA/CA` holder address
-- `caHash` when available
-- target resonance contract in normalized full-address and raw-address form
-- target CA contract
-- dependency mode and detected Portkey CA skill version when practical
-- method chain `ManagerForwardCall -> LeavePairQueue()`
-- current `GetPairQueueStatus`
-- `queue_timeout_seconds`
-- `queue_timeout_humanized`
-- `GetPairQueueStats` when available
-- `user_explanation` that translates timeout and current queue state into ordinary language
-- explicit confirmation request
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, whether the holder still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current queue status, queue timeout fields, queue stats, and supporting `user_explanation`
 
 ## Example Reference
 
