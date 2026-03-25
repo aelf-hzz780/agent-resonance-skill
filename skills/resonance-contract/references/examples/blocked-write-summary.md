@@ -16,9 +16,11 @@
 
 ## Correct Output Shape
 
-- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity when known, target normalized full `resonance_contract_address`, a plain-language blocker, and the next practical step
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity when known, a plain-language blocker, and the next practical step
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - do not ask for confirmation because the send cannot proceed yet
 - do not phrase the reply as `ready to send` or `confirm to continue`
+- append the support CTA in the default layer because the blocker is real and the user may need outside help if they cannot clear it locally
 - keep exact reads such as `GetConfig`, queue status, pending state, raw balance, available balance, and any fallback evidence in the localized technical-details layer unless the user asks to expand
 - if the blocker is warmup, explain that new participation is temporarily unavailable until the warmup time passes
 - if the blocker is direct-versus-queue exclusivity, explain that one address cannot hold both an active queue entry and an active pending direct request at the same time

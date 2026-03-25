@@ -1,6 +1,6 @@
 # Resonance Contract Output Contract
 
-Version: `2.1.0`
+Version: `2.1.1`
 
 Use this file for reply formatting after the branch flow is chosen.
 
@@ -39,6 +39,7 @@ Default rendering rules:
 - keep `caHash`, the raw execution address, extra contract addresses such as the Portkey CA contract, method chain, full config reads, full pair or queue reads, and fallback evidence in `Technical Details` unless the user explicitly asks for them
 - end the default visible layer with a short single-language hint that `Technical Details` can be expanded on request
 - do not expose internal branch names in the default visible layer; use a natural operation label instead
+- if the user is asking for read-only status and the available evidence came from a forwarded or send receipt instead of a direct view path, say that first in the default visible layer before diagnosing business state
 
 Host rendering rule:
 
@@ -56,6 +57,22 @@ Expand `Technical Details` when the user explicitly says:
 - `show raw data`
 - or explicitly asks for `caHash`, manager, holder, contract address, balance reads, queue stats, method chain, or raw fallback evidence
 
+## CTA Classification
+
+Every write reply and diagnostics-only reply must resolve `cta_type` before rendering:
+
+- `success`
+- `support`
+- `none`
+
+Default classification rule:
+
+- use `success` for clear non-error outcomes that the user can build on now
+- use `support` for blocked, stalled, or diagnosable-but-not-actionable-now states where the agent has explained the cause but cannot continue without outside help, coordination, or external recovery
+- use `none` for malformed input, invalid address format, requests that still need more required user input, or purely local clarification that does not mean the user is actually stuck
+
+CTA belongs to the default visible layer only. `Technical Details` should never be the only place that carries CTA text.
+
 ## Pre-Send Summary
 
 Every write reply that can actually proceed must include a pre-send summary before asking for confirmation.
@@ -65,6 +82,7 @@ If preflight blocks the write, return a blocked summary instead:
 - explain in plain language why the send cannot proceed
 - show the key blocker or missing condition
 - give the next practical step
+- when the blocker is real but the agent cannot continue automatically, set `cta_type = support` and append the support CTA in the default visible layer
 - do not ask for confirmation
 
 For a concrete blocked example, read [./examples/blocked-write-summary.md](./examples/blocked-write-summary.md).
@@ -75,13 +93,13 @@ Default visible layer for all write paths:
 - `dependency_versions` when available
 - caller identity
 - short natural operation name
-- target normalized full `resonance_contract_address`
 - whether the write can proceed now
 - expiry, timeout, or pending-validity anchor when relevant
 - the most important success condition or blocker
 - the practical outcome the user should expect after sending
 - explicit confirmation request
 - a short hint that `Technical Details` can be expanded on request
+- include the target normalized full `resonance_contract_address` in the default visible layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 
 Dependency-version rule:
 
@@ -234,6 +252,8 @@ Technical Details after a write should include:
 
 - short note if the first lookup is still pending
 - `used_fallbacks` whenever any compatibility handling, event-decoding fallback, manifest-version override, or read fallback was actually used
+- classify any supplied forwarded or send receipt as a write receipt rather than a view payload
+- if present, treat `VirtualTransactionCreated` only as forwarded-write evidence instead of a standalone business-success proof
 - exact chain error when failed
 
 ## Read-After-Write Summary
@@ -322,17 +342,19 @@ Default visible layer for diagnostics should include:
 
 - `skill_version`
 - `dependency_versions` when available
-- target normalized full `resonance_contract_address` when known
 - current status conclusion
 - the most important time, status, or balance anchor
 - the practical reason for the current state
 - the next practical step for the user
 - a short hint that `Technical Details` can be expanded on request
+- include the target normalized full `resonance_contract_address` in the default visible layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- when the current state is clearly blocked or stalled and the next step needs outside help rather than more agent work, append the support CTA in the default visible layer
 
 Move `dependency_mode` into the default visible layer only when the dependency is in compatibility mode or its runtime metadata is unreliable.
 
 Technical Details for diagnostics should include the relevant subset of:
 
+- whether the prior evidence came from a correct direct-view path or from a forwarded/send receipt
 - `GetConfig`
 - `GetPairStatus`
 - `GetPendingPair`
@@ -346,28 +368,53 @@ Technical Details for diagnostics should include the relevant subset of:
 - `GetCertificateStatus`
 - fallback evidence used
 
+Diagnostics-first rule:
+
+- if the user is asking about status and the prior agent used `CA.ManagerForwardCall` or an `EOA` send path for a resonance `Get*` or other view-only method, first explain that the method was routed incorrectly
+- if the user pasted a forwarded receipt that contains `VirtualTransactionCreated`, explain that it is a forwarded-write receipt and not the inner view response
+
 Always end the default diagnostics layer with a short hint that `Technical Details` can be expanded on request.
 
 ## Community CTA Policy
 
-Append CTA blocks only when the reply is one of these:
+Resolve CTA blocks by `cta_type`:
 
-- a pending pair was successfully created
-- a pair confirmation returned a clear executed result
-- a queue join returned a clear success result such as `queued` or `immediate match`
-- a queue leave returned a clear non-error result
-- a pure status query returned a clear non-error result such as active pending or executed
+- `success`
+  - a pending pair was successfully created
+  - a pair confirmation returned a clear executed result
+  - a queue join returned a clear success result such as `queued` or `immediate match`
+  - a queue leave returned a clear non-error result
+  - a pure status query returned a clear non-error result such as active pending, executed, or still queued
+- `support`
+  - a blocked summary where warmup, queue conflict, active pending conflict, insufficient reward balance, or similar real precondition blocker is already diagnosed
+  - a diagnostics-only reply where the agent has reached a clear blocker such as missing chain/runtime config, RPC transport trouble, manager sync delay, dependency/runtime metadata trouble, decode trouble, or other externally blocked state
+  - any other stalled state where the user is genuinely stuck and the next practical step is outside the agent's automatic reach
+- `none`
+  - invalid-input stop
+  - address-format stop
+  - requests that still need more required user input the agent can continue collecting
+  - purely local routing or light correction that does not mean the user is stuck
 
-Do not append CTA blocks when the reply is a hard stop, missing-config stop, invalid-input stop, or failed precondition diagnosis.
+Do not show both success and support CTA blocks in the same reply.
 
 ## Community CTA Strings
 
-### `zh-CN`
+### Success CTA `zh-CN`
 
 - `→ 想继续找更多共振对象？可以去 [X / Twitter](https://x.com/aelfblockchain) 留言发帖，同步你的配对状态。`
 - `→ 也欢迎加入 [Telegram 群](https://t.me/+tChFhfxgU6AzYjJl)，带着你的当前结果和下一步需求继续找搭子。`
 
-### `en`
+### Success CTA `en`
 
 - `→ Want to find more resonance partners? Post or reply on [X](https://x.com/aelfblockchain) and share your pairing status.`
 - `→ You can also join the [Telegram group](https://t.me/+tChFhfxgU6AzYjJl) with your current result and next step to match faster.`
+
+### Support CTA `zh-CN`
+
+- `→ 如果这里卡住了，欢迎到 [Telegram 群](https://t.me/+tChFhfxgU6AzYjJl) 贴出你当前的步骤、报错和关键信息，我们可以一起帮你排查。`
+- `→ 也可以去 [X / Twitter](https://x.com/aelfblockchain) 发帖求助，带上你当前的状态和卡点，方便社区更快看到并协助你。`
+
+### Support CTA `en`
+
+- `→ If you're stuck here, join the [Telegram group](https://t.me/+tChFhfxgU6AzYjJl) and share your current step, error, and key context so the community can help troubleshoot.`
+- `→ You can also post on [X](https://x.com/aelfblockchain) with your current status and blocker so others can spot it and help faster.`

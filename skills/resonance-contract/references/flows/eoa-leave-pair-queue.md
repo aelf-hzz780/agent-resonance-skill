@@ -7,7 +7,7 @@ Use this branch for the `EOA` queue-leave path after account choice and particip
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
-- validated runtime version: `1.2.4`
+- validated runtime version: `1.2.6`
 
 ## When To Use
 
@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Method: `LeavePairQueue()`
 - Only the queued address itself can actively leave its queue entry
+- All resonance `Get*` and other view-only reads in this flow must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call, never `portkey_call_send_method`
 - `LeavePairQueue()` requires the caller to still have an active queue entry
 - If the queue entry already expired, matched, or was evicted, `GetPairQueueStatus()` will already show `in_queue == false`
 
@@ -31,7 +32,7 @@ Use this flow only when all conditions below are true:
 2. Normalize the incoming contract address into display full-address form and raw execution form.
 3. Detect the local Portkey EOA skill version when runtime metadata or local manifest data is available; if the version still cannot be resolved reliably, omit `dependency_versions.portkey_eoa` from the default visible layer and explain the omission only in technical details.
 4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
-5. Read `GetConfig()`.
+5. Read `GetConfig()` through the generic view path, not through `portkey_call_send_method`.
 6. Stop if the contract appears uninitialized.
 7. Record `request_expire_seconds` and `queue_capacity` from `GetConfig()`.
 8. Read `GetPairQueueStatus()` for the caller address.
@@ -62,8 +63,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, whether the caller still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current queue status, queue timeout fields, queue stats, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, whether the caller still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current queue status, queue timeout fields, and queue stats
 
 ## Example Reference
 

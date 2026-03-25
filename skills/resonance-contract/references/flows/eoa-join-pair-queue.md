@@ -7,7 +7,7 @@ Use this branch for the `EOA` queue-join path after account choice and participa
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
-- validated runtime version: `1.2.4`
+- validated runtime version: `1.2.6`
 
 ## When To Use
 
@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Method: `JoinPairQueue(JoinPairQueueInput)`
 - If the input is empty, default, or `selection_policy` is unspecified, the contract uses `FIFO`
+- All resonance `Get*` and other view-only reads in this flow must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call, never `portkey_call_send_method`
 - If `selection_policy == RANDOM`, the contract chooses from currently eligible queued addresses without first-come-first-served guarantees
 - If an eligible queued address already exists, the contract may match and execute resonance immediately in the same transaction
 - If no eligible queued address exists, the caller joins the queue
@@ -40,7 +41,7 @@ Use this flow only when all conditions below are true:
 4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
 5. Resolve the requested queue selection policy.
 6. If the user did not specify a policy, keep the input empty or default and explain that the effective selection policy will be `FIFO`.
-7. Read `GetConfig()`.
+7. Read `GetConfig()` through the generic view path, not through `portkey_call_send_method`.
 8. Stop if the contract appears uninitialized.
 9. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
 10. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
@@ -84,8 +85,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, default or requested queue policy, timeout, whether the write can proceed, the main balance conclusion, likely outcome guidance, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, queue reads, queue stats, reward-balance reads, the join-side maximum reward check, the immediate-match-only note when relevant, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, default or requested queue policy, timeout, whether the write can proceed, the main balance conclusion, likely outcome guidance, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, queue reads, queue stats, reward-balance reads, the join-side maximum reward check, and the immediate-match-only note when relevant
 
 ## Example Reference
 

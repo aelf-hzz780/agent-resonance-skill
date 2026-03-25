@@ -24,7 +24,8 @@
 ## Correct Output Shape
 
 - use a natural operation label such as `Leave resonance queue` in the default user-facing layer instead of exposing the internal branch name
-- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, whether the caller still appears queued, timeout guidance when relevant, and the practical effect of leaving now
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, whether the caller still appears queued, timeout guidance when relevant, and the practical effect of leaving now
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - keep signer, target raw execution address, current queue status, timeout summary, and queue stats when available in the localized technical-details layer unless the user asks to expand
 - explain in plain language that if the user is already no longer in queue, the reason may be expiry, match, active leave, or capacity eviction
 - ask for explicit confirmation before sending

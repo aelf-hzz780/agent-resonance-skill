@@ -1,6 +1,6 @@
 # Runtime Compatibility
 
-Version: `2.1.0`
+Version: `2.1.1`
 
 Use this file when the agent needs to normalize deployment config, reason about Portkey dependency versions, explain queue semantics, reason about reward reservation, diagnose warmup, or apply known SDK fallbacks.
 
@@ -54,12 +54,54 @@ Reply rule:
   - `This shows an RPC transport problem in the current environment, but it does not by itself isolate the exact root cause.`
 - if the agent is only inferring from browser reachability plus failed SDK calls, say that `GET reachability and POST JSON-RPC health are different checks`
 
+## Call Path Semantics
+
+Treat method type as the first routing decision, not wallet type alone.
+
+Routing rule:
+
+- for `AA/CA`, resonance state-changing methods use `manager signer -> CA.ManagerForwardCall -> resonanceContract.<writeMethod>`
+- for `AA/CA`, resonance `Get*` and other view-only methods must use the direct view path such as `contract.<Method>.call(...)` or Portkey CA `view-call`
+- for `EOA`, resonance state-changing methods use the generic send path
+- for `EOA`, resonance `Get*` and other view-only methods must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call
+- do not treat `AA/CA` forwarded writes or `EOA` send receipts as substitutes for direct view responses
+- if a prior agent invoked a resonance `Get*` method through `CA.ManagerForwardCall` or an `EOA` send path, diagnose the wrong call path first before interpreting contract state
+
+Practical consequence:
+
+- `GetConfig`, `GetPairQueueStatus`, `GetPendingPair`, `GetActivePendingPair`, and the other resonance `Get*` methods are read models, not writes
+- when these methods are sent through a write path, the result shape is receipt semantics or exact write error semantics, not the inner method's view payload
+
+## VirtualTransactionCreated Semantics
+
+Treat `VirtualTransactionCreated` carefully in `AA/CA` forwarded receipts.
+
+Meaning:
+
+- it is expected on successful `CA.ManagerForwardCall` writes
+- it proves that the CA contract created the forwarded inner call
+- it does not by itself expose the decoded return value of the inner resonance method
+- it is not a standalone proof of final business success
+
+Preferred interpretation order for forwarded writes:
+
+1. classify the receipt as a forwarded write receipt
+2. inspect business events such as `PairQueueJoined`, `PairResonated`, or `PairQueueEntryRemoved`
+3. perform direct read-after-write queries
+4. only then summarize the final business result
+
+If the only available evidence is `VirtualTransactionCreated` without business events or follow-up reads:
+
+- say that the write was forwarded
+- do not claim that the target view payload was returned
+- do not claim a final pair or queue outcome yet
+
 ## Portkey Dependency Mode
 
 Validated local Portkey dependency versions:
 
-- Portkey CA skill: `2.2.0`
-- Portkey EOA skill: `1.2.4`
+- Portkey CA skill: `2.3.0`
+- Portkey EOA skill: `1.2.6`
 
 Dependency-version source rule:
 
@@ -71,6 +113,7 @@ Dependency-version source rule:
 
 Observed local compatibility mode:
 
+- `2.2.x` still works in normal mode for the resonance flow because it was previously validated
 - `2.1.x` still works for the resonance flow, but the agent must apply the compatibility handling below
 
 Suggested reply metadata when the runtime is not on the validated dependency version:

@@ -7,7 +7,7 @@ Use this branch for the `EOA` direct-confirm path after account choice and parti
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
-- validated runtime version: `1.2.4`
+- validated runtime version: `1.2.6`
 
 ## When To Use
 
@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Method: `ConfirmPairRequest(Address initiator)`
 - Caller must be the pending counterparty
+- All resonance `Get*` and other view-only reads in this flow must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call, never `portkey_call_send_method`
 - Initiator input must be a valid on-chain `Address`
 - `ConfirmPairRequest` requires an active pending pair
 - `ConfirmPairRequest` requires the raw remaining reward pool to cover the maximum reward tier before randomness is sampled
@@ -37,7 +38,7 @@ Use this flow only when all conditions below are true:
 4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
 5. Validate the initiator input as an on-chain `Address`.
 6. Stop if the initiator address equals the resolved signer address.
-7. Read `GetConfig()`.
+7. Read `GetConfig()` through the generic view path, not through `portkey_call_send_method`.
 8. Stop if the contract appears uninitialized.
 9. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
 10. Read `GetPairStatus()` for the unordered pair.
@@ -84,8 +85,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, initiator, target normalized full `resonance_contract_address`, whether the write can proceed, pending validity window, the confirm-side balance conclusion, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, active pending pair summary, `GetRemainingBalance`, optional `GetRewardBalance` and `GetAvailableRewardBalance`, pool checks, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, initiator, whether the write can proceed, pending validity window, the confirm-side balance conclusion, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, active pending pair summary, `GetRemainingBalance`, optional `GetRewardBalance` and `GetAvailableRewardBalance`, and pool checks
 
 ## Example Reference
 

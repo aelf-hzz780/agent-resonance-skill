@@ -1,6 +1,6 @@
 ---
 name: resonance-contract
-version: 2.1.0
+version: 2.1.1
 description: Use when an agent needs to help a user participate in ResonanceContract through direct pair or automatic queue flows, route between EOA and AA/CA, create, confirm, join queue, leave queue, or diagnose pair, queue, warmup, or reward-balance state without handling admin operations.
 ---
 
@@ -10,7 +10,7 @@ Use this directory as the canonical `resonance-contract` skill package.
 
 ## Skill Version
 
-- Current skill version: `2.1.0`
+- Current skill version: `2.1.1`
 - If behavior seems inconsistent, report the `version` field from this file first.
 
 ## Scope
@@ -103,13 +103,14 @@ Normalization rule:
 
 Validated dependency versions for this skill:
 
-- Portkey CA skill: `2.2.0`
-- Portkey EOA skill: `1.2.4`
+- Portkey CA skill: `2.3.0`
+- Portkey EOA skill: `1.2.6`
 
 Compatibility rule:
 
-- if the local Portkey CA skill is exactly `2.2.0`, use normal mode
-- if the local Portkey CA skill is newer than `2.2.0`, use normal mode unless local validation shows a regression
+- if the local Portkey CA skill is exactly `2.3.0`, use normal mode
+- if the local Portkey CA skill is `2.2.x`, keep using normal mode because that line was previously validated for this skill
+- if the local Portkey CA skill is newer than `2.3.0`, use normal mode unless local validation shows a regression
 - if the local Portkey CA skill is `2.1.x`, continue in compatibility mode and explicitly apply the runtime fallbacks documented in [references/runtime-compat.md](./references/runtime-compat.md)
 - if the local Portkey CA skill is older than `2.1.0`, stop unless the user explicitly asks for best-effort diagnostics only
 - if dependency metadata reports `0.0.0`, treat it as a dependency runtime bug and do not claim that the skill version is unknown until the local package metadata has been checked
@@ -260,6 +261,10 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - Treat `AA`, `CA`, and `AA/CA` as the same `AA/CA` branch.
 - Do not treat a successful browser `GET` to `rpc_url` as proof that JSON-RPC is healthy; AElf SDK reads and writes still use HTTP `POST` against the same base endpoint.
 - When RPC requests hang or fail, do not jump directly to a root-cause claim such as `VPN`, `router`, `SSL`, or `certificate` unless the evidence clearly isolates that cause.
+- Never use `CA.ManagerForwardCall` for any resonance `Get*` or other view-only method under `AA/CA`; use `contract.<Method>.call(...)` or Portkey CA `view-call` instead.
+- Never use a generic `EOA` send path for any resonance `Get*` or other view-only method; use `portkey_call_view_method`, CLI `contract view`, or an SDK read call instead.
+- Treat `VirtualTransactionCreated` as forwarded-write evidence only: it shows that the CA contract created the inner call, but it is not a decoded view payload and not a standalone proof of final business success.
+- If a user asks for status and the available evidence only comes from a forwarded or send receipt, first say whether the prior agent used the wrong call path before explaining business state.
 - For any write reply or diagnostics-only reply, render a user-summary layer first and keep `Technical Details` behind explicit user intent such as `展开详情`, `debug`, `看链上参数`, `technical details`, or `show raw data`.
 - Keep `skill_version` and `dependency_versions` visible in the default user-facing layer.
 - Keep `dependency_mode` in `Technical Details` unless the dependency is in compatibility mode or dependency runtime metadata itself is unreliable.
@@ -280,6 +285,7 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
   - localized user-summary layer: operation, caller, target contract address, whether the write can proceed, expiry or timeout, the most important success condition or blocker, and an explicit confirmation request
   - localized technical-details layer: resolved caller, target contract, method chain, current window, queue timeout, reward tiers, current pair or queue state, and the relevant balance model
 - For `AA/CA`, the write path must be `manager signer -> CA.ManagerForwardCall -> resonanceContract.<method>`.
+- For `EOA`, state-changing resonance methods must use the generic send path, not a view path.
 - For `AA/CA`, show both the manager signer and the resolved `AA/CA` holder address when available.
 - For `AA/CA`, if recovery or manager switching happened in the same session, verify that the target execution chain holder info already includes the chosen manager before sending.
 - After any submitted write that returns `txId`, include the `txId` and a chain explorer link.
@@ -291,7 +297,13 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - When `GetCertificateStatus` shows `COMING_SOON` but also returns strong payload, explain that certificate issuance is not open yet but the strong record already exists.
 - If executed-state views fail because of an SDK output-decode issue, fall back to event decoding plus other views and say so explicitly.
 - If the chain returns an exact error, surface the exact error and stop. Do not invent recovery success.
-- Do not append community CTA blocks to hard-stop diagnostic replies.
+- Resolve `cta_type` for every write or diagnostics-only reply:
+  - use `success` for clear non-error results that the user can build on
+  - use `support` when the blocker is understood but the agent cannot continue without outside help, external recovery, or human coordination
+  - use `none` for malformed input, address-format errors, or requests that are still missing required user input the agent can continue to collect
+- Keep success CTA copy for completed or clearly non-error participation outcomes.
+- Use support CTA copy when the user is stuck on warmup, queue conflict, pending conflict, reward-balance shortage, missing chain/runtime config, manager sync, dependency/runtime issues, RPC transport problems, or similar diagnosable blockers.
+- Do not append any CTA when the request is invalid or the next step is still for the agent to ask for missing required input.
 
 ## Required Reading Pattern
 

@@ -17,6 +17,12 @@ Read these first:
 
 - `GetConfig()`
 
+All reads in this branch must use direct view calls:
+
+- for `AA/CA`, use `contract.<Method>.call(...)` or Portkey CA `view-call`
+- for `EOA`, use `portkey_call_view_method`, CLI `contract view`, or an SDK read call
+- never use `CA.ManagerForwardCall` or an `EOA` send path for resonance `Get*` or other view-only methods in this branch
+
 Read these when relevant to the user input:
 
 - `GetPairStatus()` for unordered-pair diagnosis
@@ -35,6 +41,8 @@ Read these when relevant to the user input:
 ## Status Interpretation Rules
 
 - if `GetConfig()` looks uninitialized, stop and say the contract is not ready
+- if the prior agent invoked a resonance `Get*` or other view-only method through `CA.ManagerForwardCall` or an `EOA` send path, first explain that the wrong call path was used and that the receipt cannot substitute for the direct view response
+- if the available evidence includes `VirtualTransactionCreated`, explain that it only proves the forwarded inner call was created and does not by itself expose the inner view payload or final business result
 - if `new_participation_available_time` is missing or unset on an otherwise initialized contract, explain that this is an abnormal state or decode issue first; only use the "admin still needs to finalize the upgrade" explanation when the deployment is known to be an upgraded legacy instance
 - if `new_participation_available_time` is still in the future, explain that new `CreatePairRequest` and `JoinPairQueue` actions are blocked during the upgrade warmup window
 - if the pair query is invalid, stop and explain that both sides must be distinct on-chain addresses
@@ -93,12 +101,15 @@ Stop immediately if any of the following is true:
 
 The reply should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, target normalized full `resonance_contract_address` when known, the current status conclusion, the most important time, status, or balance anchor, the practical reason for that state, and the next suggested action
+- localized user-summary layer first with `skill_version`, `dependency_versions`, the current status conclusion, the most important time, status, or balance anchor, the practical reason for that state, and the next suggested action
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the diagnosis
-- localized technical-details layer on demand with chosen flow, current config summary, pair status summary, address-scoped pending or queue summary, pending-pair details, queue details, queue stats, balance reads, executed outcome details, `GetStrongRecord`, `GetCertificateStatus`, fallback evidence, and supporting `user_explanation`
+- localized technical-details layer on demand with chosen flow, current config summary, pair status summary, address-scoped pending or queue summary, pending-pair details, queue details, queue stats, balance reads, executed outcome details, `GetStrongRecord`, `GetCertificateStatus`, and fallback evidence
+- if the diagnosis started from a forwarded or send receipt, say in the default layer first whether that receipt came from the wrong path for a view-only method, then put the exact replacement direct-view query in technical details
 - when the diagnosis involves RPC reachability, keep the default layer wording bounded to observed facts and avoid over-attributing the root cause
-- no community CTA for hard-stop or failure diagnoses
+- if the diagnosis ends in a real blocker or externally stalled state the agent cannot continue automatically, including missing chain/runtime config, append the support CTA in the default layer
+- do not append any CTA for invalid input, missing required user input, or light routing corrections that still leave the agent able to continue in the same conversation
 
 ## Example Reference
 
-Read [../examples/status-query-diagnostics.md](../examples/status-query-diagnostics.md) before replying.
+Read [../examples/status-query-diagnostics.md](../examples/status-query-diagnostics.md) and [../examples/support-cta-diagnostics.md](../examples/support-cta-diagnostics.md) before replying.
