@@ -36,7 +36,8 @@
 
 - use a natural operation label such as `发起配对请求` or `Create pair request`, rather than exposing the internal branch name
 - explain that `CA` still maps to the `AA/CA` branch
-- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout guidance, and the main blocker or balance conclusion
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, counterparty, whether the write can proceed, timeout guidance, and the main blocker or balance conclusion
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - keep manager signer, holder address, `caHash`, target raw execution address, target CA contract, forwarded method chain, address-scoped pending state, queue state, and create-side balance check in the localized technical-details layer unless the user asks to expand
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available

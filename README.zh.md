@@ -6,7 +6,7 @@
 
 ## 版本信息
 
-- `resonance-contract` skill：`2.1.0`
+- `resonance-contract` skill：`2.1.1`
 - 已验证 Portkey CA skill：`2.2.0`
 - 已验证 Portkey EOA skill：`1.2.4`
 
@@ -27,10 +27,12 @@
 - 在 `direct pair` 和 `queue` 两种参与模式之间做明确路由
 - 显式依赖 Portkey skill 处理本地 signer 或 manager 上下文
 - 所有写操作都先做读校验
+- 所有 resonance `Get*` 和其它 view-only 方法都强制走只读调用路径，不允许误走 `AA/CA` forwarded write 或 `EOA` send
 - 所有写操作都要求显式确认
-- 默认先给普通用户摘要，再给写前摘要和写后回执的关键锚点
+- 默认先给普通用户摘要，并在写前和写后阶段给出关键锚点
 - 默认层会展示 `skill_version` 和 `dependency_versions`
 - `Technical Details` 只在用户明确说“展开详情 / debug / 看链上参数”时再完整展开
+- 会把 `VirtualTransactionCreated` 解释成 forwarded write 证据，而不是 view 返回值或单独的业务成功证明
 - 会把排队超时、默认撮合规则、满队列处理方式和升级冷却期解释成普通用户能看懂的话
 - 对完成类结果统一追加社区 CTA
 

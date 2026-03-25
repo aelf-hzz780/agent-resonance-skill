@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Method: `CreatePairRequest(Address counterparty)`
 - Caller becomes the pair initiator
+- All resonance `Get*` and other view-only reads in this flow must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call, never `portkey_call_send_method`
 - Counterparty input must be a valid on-chain `Address`
 - The pair cannot be self-paired
 - An executed unordered pair cannot be created again
@@ -39,7 +40,7 @@ Use this flow only when all conditions below are true:
 4. Use the Portkey EOA skill to resolve the active local `EOA` signer.
 5. Validate the counterparty input as an on-chain `Address`.
 6. Stop if the counterparty address equals the resolved signer address.
-7. Read `GetConfig()`.
+7. Read `GetConfig()` through the generic view path, not through `portkey_call_send_method`.
 8. Stop if the contract appears uninitialized, for example `token_symbol` is empty or `admin` is missing.
 9. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
 10. Stop if `new_participation_available_time` is missing or unset on an otherwise initialized contract, and explain that this is an abnormal state or decode issue first; only frame it as pre-finalize upgrade blocking when the deployment is known to be an upgraded legacy instance.
@@ -90,8 +91,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, counterparty, target normalized full `resonance_contract_address`, whether the write can proceed, timeout or pending-validity guidance, the main blocker or balance conclusion, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, current pair state, address-scoped pending state, queue state, reward-balance reads, create-side maximum reservation check, expired-pending auto-clear note, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, counterparty, whether the write can proceed, timeout or pending-validity guidance, the main blocker or balance conclusion, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, resolved signer, target raw execution address, method, current window and reward tiers, current pair state, address-scoped pending state, queue state, reward-balance reads, create-side maximum reservation check, and the expired-pending auto-clear note
 
 ## Example Reference
 

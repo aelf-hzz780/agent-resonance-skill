@@ -1,6 +1,6 @@
 # Resonance Contract Output Contract
 
-Version: `2.1.0`
+Version: `2.1.1`
 
 Use this file for reply formatting after the branch flow is chosen.
 
@@ -39,6 +39,7 @@ Default rendering rules:
 - keep `caHash`, the raw execution address, extra contract addresses such as the Portkey CA contract, method chain, full config reads, full pair or queue reads, and fallback evidence in `Technical Details` unless the user explicitly asks for them
 - end the default visible layer with a short single-language hint that `Technical Details` can be expanded on request
 - do not expose internal branch names in the default visible layer; use a natural operation label instead
+- if the user is asking for read-only status and the available evidence came from a forwarded or send receipt instead of a direct view path, say that first in the default visible layer before diagnosing business state
 
 Host rendering rule:
 
@@ -75,13 +76,13 @@ Default visible layer for all write paths:
 - `dependency_versions` when available
 - caller identity
 - short natural operation name
-- target normalized full `resonance_contract_address`
 - whether the write can proceed now
 - expiry, timeout, or pending-validity anchor when relevant
 - the most important success condition or blocker
 - the practical outcome the user should expect after sending
 - explicit confirmation request
 - a short hint that `Technical Details` can be expanded on request
+- include the target normalized full `resonance_contract_address` in the default visible layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 
 Dependency-version rule:
 
@@ -234,6 +235,8 @@ Technical Details after a write should include:
 
 - short note if the first lookup is still pending
 - `used_fallbacks` whenever any compatibility handling, event-decoding fallback, manifest-version override, or read fallback was actually used
+- classify any supplied forwarded or send receipt as a write receipt rather than a view payload
+- if present, treat `VirtualTransactionCreated` only as forwarded-write evidence instead of a standalone business-success proof
 - exact chain error when failed
 
 ## Read-After-Write Summary
@@ -322,17 +325,18 @@ Default visible layer for diagnostics should include:
 
 - `skill_version`
 - `dependency_versions` when available
-- target normalized full `resonance_contract_address` when known
 - current status conclusion
 - the most important time, status, or balance anchor
 - the practical reason for the current state
 - the next practical step for the user
 - a short hint that `Technical Details` can be expanded on request
+- include the target normalized full `resonance_contract_address` in the default visible layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 
 Move `dependency_mode` into the default visible layer only when the dependency is in compatibility mode or its runtime metadata is unreliable.
 
 Technical Details for diagnostics should include the relevant subset of:
 
+- whether the prior evidence came from a correct direct-view path or from a forwarded/send receipt
 - `GetConfig`
 - `GetPairStatus`
 - `GetPendingPair`
@@ -345,6 +349,11 @@ Technical Details for diagnostics should include the relevant subset of:
 - `GetStrongRecord`
 - `GetCertificateStatus`
 - fallback evidence used
+
+Diagnostics-first rule:
+
+- if the user is asking about status and the prior agent used `CA.ManagerForwardCall` or an `EOA` send path for a resonance `Get*` or other view-only method, first explain that the method was routed incorrectly
+- if the user pasted a forwarded receipt that contains `VirtualTransactionCreated`, explain that it is a forwarded-write receipt and not the inner view response
 
 Always end the default diagnostics layer with a short hint that `Technical Details` can be expanded on request.
 

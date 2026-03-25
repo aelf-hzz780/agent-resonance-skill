@@ -1,6 +1,6 @@
 ---
 name: resonance-contract
-version: 2.1.0
+version: 2.1.1
 description: Use when an agent needs to help a user participate in ResonanceContract through direct pair or automatic queue flows, route between EOA and AA/CA, create, confirm, join queue, leave queue, or diagnose pair, queue, warmup, or reward-balance state without handling admin operations.
 ---
 
@@ -10,7 +10,7 @@ Use this directory as the canonical `resonance-contract` skill package.
 
 ## Skill Version
 
-- Current skill version: `2.1.0`
+- Current skill version: `2.1.1`
 - If behavior seems inconsistent, report the `version` field from this file first.
 
 ## Scope
@@ -260,6 +260,10 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - Treat `AA`, `CA`, and `AA/CA` as the same `AA/CA` branch.
 - Do not treat a successful browser `GET` to `rpc_url` as proof that JSON-RPC is healthy; AElf SDK reads and writes still use HTTP `POST` against the same base endpoint.
 - When RPC requests hang or fail, do not jump directly to a root-cause claim such as `VPN`, `router`, `SSL`, or `certificate` unless the evidence clearly isolates that cause.
+- Never use `CA.ManagerForwardCall` for any resonance `Get*` or other view-only method under `AA/CA`; use `contract.<Method>.call(...)` or Portkey CA `view-call` instead.
+- Never use a generic `EOA` send path for any resonance `Get*` or other view-only method; use `portkey_call_view_method`, CLI `contract view`, or an SDK read call instead.
+- Treat `VirtualTransactionCreated` as forwarded-write evidence only: it shows that the CA contract created the inner call, but it is not a decoded view payload and not a standalone proof of final business success.
+- If a user asks for status and the available evidence only comes from a forwarded or send receipt, first say whether the prior agent used the wrong call path before explaining business state.
 - For any write reply or diagnostics-only reply, render a user-summary layer first and keep `Technical Details` behind explicit user intent such as `展开详情`, `debug`, `看链上参数`, `technical details`, or `show raw data`.
 - Keep `skill_version` and `dependency_versions` visible in the default user-facing layer.
 - Keep `dependency_mode` in `Technical Details` unless the dependency is in compatibility mode or dependency runtime metadata itself is unreliable.
@@ -280,6 +284,7 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
   - localized user-summary layer: operation, caller, target contract address, whether the write can proceed, expiry or timeout, the most important success condition or blocker, and an explicit confirmation request
   - localized technical-details layer: resolved caller, target contract, method chain, current window, queue timeout, reward tiers, current pair or queue state, and the relevant balance model
 - For `AA/CA`, the write path must be `manager signer -> CA.ManagerForwardCall -> resonanceContract.<method>`.
+- For `EOA`, state-changing resonance methods must use the generic send path, not a view path.
 - For `AA/CA`, show both the manager signer and the resolved `AA/CA` holder address when available.
 - For `AA/CA`, if recovery or manager switching happened in the same session, verify that the target execution chain holder info already includes the chosen manager before sending.
 - After any submitted write that returns `txId`, include the `txId` and a chain explorer link.

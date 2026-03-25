@@ -29,7 +29,8 @@
 ## Correct Output Shape
 
 - use a natural operation label such as `Confirm pair request` in the default user-facing layer instead of exposing the internal branch name
-- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, initiator, target normalized full `resonance_contract_address`, whether the write can proceed, pending validity guidance, and the confirm-side balance conclusion
+- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, caller identity, initiator, whether the write can proceed, pending validity guidance, and the confirm-side balance conclusion
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - keep signer, initiator, target raw execution address, method, active pending pair summary, and pool check summary in the localized technical-details layer unless the user asks to expand
 - keep `GetRemainingBalance()` as the real confirm-side gate, and only treat `GetRewardBalance()` or `GetAvailableRewardBalance()` as diagnostics
 - if `GetCertificateStatus()` is read after success, explain that certificate issuance is still `COMING_SOON` even when strong-resonance payload exists

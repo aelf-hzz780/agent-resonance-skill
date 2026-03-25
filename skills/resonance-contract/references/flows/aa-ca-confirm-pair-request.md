@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Forwarded write path: `manager signer -> CA.ManagerForwardCall -> resonanceContract.ConfirmPairRequest(Address initiator)`
 - Caller at the resonance contract layer is the resolved `AA/CA` holder address, not the manager signer
+- All resonance `Get*` and other view-only reads in this flow must use the direct view path such as `contract.<Method>.call(...)` or Portkey CA `view-call`, never `CA.ManagerForwardCall`
 - Initiator input must be a valid on-chain `Address`
 - Caller must be the pending counterparty
 - `ConfirmPairRequest` requires an active pending pair
@@ -38,7 +39,7 @@ Use this flow only when all conditions below are true:
 5. If recovery or manager switching happened in the same session, query holder info on the target execution chain and stop until the chosen manager is visible there.
 6. Validate the initiator input as an on-chain `Address`.
 7. Stop if the initiator address equals the resolved `AA/CA` holder address.
-8. Read `GetConfig()`.
+8. Read `GetConfig()` through the direct view path, not through `CA.ManagerForwardCall`.
 9. Stop if the contract appears uninitialized.
 10. Record the current window, reward tiers, `request_expire_seconds`, `new_participation_available_time`, and `queue_capacity` from `GetConfig()`.
 11. Read `GetPairStatus()` for the unordered pair using `AA/CA holder address` and `initiator`.
@@ -88,8 +89,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, initiator, target normalized full `resonance_contract_address`, whether the write can proceed, pending validity window, the confirm-side balance conclusion, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current window and reward tiers, active pending pair summary, `GetRemainingBalance`, optional `GetRewardBalance` and `GetAvailableRewardBalance`, pool checks, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, initiator, whether the write can proceed, pending validity window, the confirm-side balance conclusion, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current window and reward tiers, active pending pair summary, `GetRemainingBalance`, optional `GetRewardBalance` and `GetAvailableRewardBalance`, and pool checks
 
 ## Example Reference
 

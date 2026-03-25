@@ -22,6 +22,7 @@ Use this flow only when all conditions below are true:
 
 - Forwarded write path: `manager signer -> CA.ManagerForwardCall -> resonanceContract.LeavePairQueue()`
 - Caller at the resonance contract layer is the resolved `AA/CA` holder address, not the manager signer
+- All resonance `Get*` and other view-only reads in this flow must use the direct view path such as `contract.<Method>.call(...)` or Portkey CA `view-call`, never `CA.ManagerForwardCall`
 - Only the queued address itself can actively leave its queue entry
 - `LeavePairQueue()` requires the caller to still have an active queue entry
 - If the queue entry already expired, matched, or was evicted, `GetPairQueueStatus()` will already show `in_queue == false`
@@ -33,7 +34,7 @@ Use this flow only when all conditions below are true:
 3. Detect the local Portkey CA skill version and mark either normal mode or compatibility mode.
 4. Use the Portkey CA skill to resolve the local `AA/CA` holder address, `caHash`, and a usable manager signer.
 5. If recovery or manager switching happened in the same session, query holder info on the target execution chain and stop until the chosen manager is visible there.
-6. Read `GetConfig()`.
+6. Read `GetConfig()` through the direct view path, not through `CA.ManagerForwardCall`.
 7. Stop if the contract appears uninitialized.
 8. Record `request_expire_seconds` and `queue_capacity` from `GetConfig()`.
 9. Read `GetPairQueueStatus()` for the `AA/CA` holder address.
@@ -67,8 +68,9 @@ Stop immediately if any of the following is true:
 
 The response before sending should contain:
 
-- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, target normalized full `resonance_contract_address`, whether the holder still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
-- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current queue status, queue timeout fields, queue stats, and supporting `user_explanation`
+- localized user-summary layer first with `skill_version`, `dependency_versions`, caller identity, whether the holder still appears queued, timeout guidance when relevant, the practical effect of leaving now, and explicit confirmation request
+- include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
+- localized technical-details layer on demand with chosen flow, manager signer, holder address, `caHash`, target raw execution address, target CA contract, dependency mode when relevant, forwarded method chain, current queue status, queue timeout fields, and queue stats
 
 ## Example Reference
 
