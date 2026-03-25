@@ -107,8 +107,9 @@ The reply should contain:
 - localized technical-details layer on demand with chosen flow, current config summary, pair status summary, address-scoped pending or queue summary, pending-pair details, queue details, queue stats, balance reads, executed outcome details, `GetStrongRecord`, `GetCertificateStatus`, and fallback evidence
 - if the diagnosis started from a forwarded or send receipt, say in the default layer first whether that receipt came from the wrong path for a view-only method, then put the exact replacement direct-view query in technical details
 - when the diagnosis involves RPC reachability, keep the default layer wording bounded to observed facts and avoid over-attributing the root cause
-- no community CTA for hard-stop or failure diagnoses
+- if the diagnosis ends in a real blocker or externally stalled state the agent cannot continue automatically, including missing chain/runtime config, append the support CTA in the default layer
+- do not append any CTA for invalid input, missing required user input, or light routing corrections that still leave the agent able to continue in the same conversation
 
 ## Example Reference
 
-Read [../examples/status-query-diagnostics.md](../examples/status-query-diagnostics.md) before replying.
+Read [../examples/status-query-diagnostics.md](../examples/status-query-diagnostics.md) and [../examples/support-cta-diagnostics.md](../examples/support-cta-diagnostics.md) before replying.

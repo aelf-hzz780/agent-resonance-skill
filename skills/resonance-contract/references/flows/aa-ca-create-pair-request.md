@@ -7,7 +7,7 @@ Use this branch for the `AA/CA` direct-create path after account choice and part
 Use the Portkey CA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/ca-agent-skills`
-- validated runtime version: `2.2.0`
+- validated runtime version: `2.3.0`
 
 ## When To Use
 

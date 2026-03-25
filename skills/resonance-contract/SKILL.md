@@ -103,13 +103,14 @@ Normalization rule:
 
 Validated dependency versions for this skill:
 
-- Portkey CA skill: `2.2.0`
-- Portkey EOA skill: `1.2.4`
+- Portkey CA skill: `2.3.0`
+- Portkey EOA skill: `1.2.6`
 
 Compatibility rule:
 
-- if the local Portkey CA skill is exactly `2.2.0`, use normal mode
-- if the local Portkey CA skill is newer than `2.2.0`, use normal mode unless local validation shows a regression
+- if the local Portkey CA skill is exactly `2.3.0`, use normal mode
+- if the local Portkey CA skill is `2.2.x`, keep using normal mode because that line was previously validated for this skill
+- if the local Portkey CA skill is newer than `2.3.0`, use normal mode unless local validation shows a regression
 - if the local Portkey CA skill is `2.1.x`, continue in compatibility mode and explicitly apply the runtime fallbacks documented in [references/runtime-compat.md](./references/runtime-compat.md)
 - if the local Portkey CA skill is older than `2.1.0`, stop unless the user explicitly asks for best-effort diagnostics only
 - if dependency metadata reports `0.0.0`, treat it as a dependency runtime bug and do not claim that the skill version is unknown until the local package metadata has been checked
@@ -296,7 +297,13 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - When `GetCertificateStatus` shows `COMING_SOON` but also returns strong payload, explain that certificate issuance is not open yet but the strong record already exists.
 - If executed-state views fail because of an SDK output-decode issue, fall back to event decoding plus other views and say so explicitly.
 - If the chain returns an exact error, surface the exact error and stop. Do not invent recovery success.
-- Do not append community CTA blocks to hard-stop diagnostic replies.
+- Resolve `cta_type` for every write or diagnostics-only reply:
+  - use `success` for clear non-error results that the user can build on
+  - use `support` when the blocker is understood but the agent cannot continue without outside help, external recovery, or human coordination
+  - use `none` for malformed input, address-format errors, or requests that are still missing required user input the agent can continue to collect
+- Keep success CTA copy for completed or clearly non-error participation outcomes.
+- Use support CTA copy when the user is stuck on warmup, queue conflict, pending conflict, reward-balance shortage, missing chain/runtime config, manager sync, dependency/runtime issues, RPC transport problems, or similar diagnosable blockers.
+- Do not append any CTA when the request is invalid or the next step is still for the agent to ask for missing required input.
 
 ## Required Reading Pattern
 

@@ -29,4 +29,6 @@
 - if the user pasted a forwarded receipt with `VirtualTransactionCreated`, explain that it is a write receipt rather than a direct view response
 - if executed, keep fallback evidence and the exact fallback route in the localized technical-details layer unless the user explicitly asks to expand
 - if certificate status is relevant, explain that it can remain `COMING_SOON` while still exposing strong-resonance payload
-- if it is a hard-stop diagnosis, do not append community CTA
+- if it is a clear non-error status such as pending, executed, or still queued, append the success CTA
+- if it is a real blocker or externally stalled diagnosis such as warmup, RPC transport trouble, or manager sync delay, append the support CTA
+- if the issue is only invalid input or a light route correction the agent can immediately fix, do not append CTA

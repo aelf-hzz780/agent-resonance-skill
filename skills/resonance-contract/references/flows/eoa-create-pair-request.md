@@ -7,7 +7,7 @@ Use this branch for the `EOA` direct-create path after account choice and partic
 Use the Portkey EOA skill explicitly:
 
 - `https://github.com/Portkey-Wallet/eoa-agent-skills`
-- validated runtime version: `1.2.4`
+- validated runtime version: `1.2.6`
 
 ## When To Use
 

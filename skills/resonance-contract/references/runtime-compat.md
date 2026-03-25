@@ -100,8 +100,8 @@ If the only available evidence is `VirtualTransactionCreated` without business e
 
 Validated local Portkey dependency versions:
 
-- Portkey CA skill: `2.2.0`
-- Portkey EOA skill: `1.2.4`
+- Portkey CA skill: `2.3.0`
+- Portkey EOA skill: `1.2.6`
 
 Dependency-version source rule:
 
@@ -113,6 +113,7 @@ Dependency-version source rule:
 
 Observed local compatibility mode:
 
+- `2.2.x` still works in normal mode for the resonance flow because it was previously validated
 - `2.1.x` still works for the resonance flow, but the agent must apply the compatibility handling below
 
 Suggested reply metadata when the runtime is not on the validated dependency version:

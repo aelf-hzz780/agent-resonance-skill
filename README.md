@@ -7,8 +7,8 @@ This repository packages a multi-host skill for user-side participation on `Reso
 ## Version
 
 - `resonance-contract` skill: `2.1.1`
-- validated Portkey CA skill: `2.2.0`
-- validated Portkey EOA skill: `1.2.4`
+- validated Portkey CA skill: `2.3.0`
+- validated Portkey EOA skill: `1.2.6`
 
 It focuses only on:
 
@@ -34,7 +34,7 @@ It does not cover admin operations such as initialization, enablement changes, r
 - moves `Technical Details` behind explicit requests such as `expand details`, `debug`, or `show raw data`
 - explains `VirtualTransactionCreated` only as forwarded-write evidence rather than a view return payload or standalone business-success proof
 - explains queue timeout, matching policy, queue-full behavior, and warmup windows in plain language
-- appends community CTAs for completed user-side results
+- appends success CTAs for clear completed results and support CTAs when the user is genuinely stuck
 
 ## Supported Branches
 

@@ -7,8 +7,8 @@
 ## 版本信息
 
 - `resonance-contract` skill：`2.1.1`
-- 已验证 Portkey CA skill：`2.2.0`
-- 已验证 Portkey EOA skill：`1.2.4`
+- 已验证 Portkey CA skill：`2.3.0`
+- 已验证 Portkey EOA skill：`1.2.6`
 
 当前只覆盖：
 
@@ -34,7 +34,7 @@
 - `Technical Details` 只在用户明确说“展开详情 / debug / 看链上参数”时再完整展开
 - 会把 `VirtualTransactionCreated` 解释成 forwarded write 证据，而不是 view 返回值或单独的业务成功证明
 - 会把排队超时、默认撮合规则、满队列处理方式和升级冷却期解释成普通用户能看懂的话
-- 对完成类结果统一追加社区 CTA
+- 对明确完成结果追加 success CTA，并在用户确实卡住时追加 support CTA
 
 ## 支持的分支
 
