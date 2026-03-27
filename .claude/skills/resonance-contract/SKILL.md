@@ -1,6 +1,6 @@
 ---
 name: "resonance-contract"
-description: "Use when Claude Code needs to help a user participate in ResonanceContract with EOA or AA/CA, route between direct pair and queue mode, create or confirm a pair request, join or leave the queue, or diagnose pair, queue, warmup, or reward-balance state."
+description: "Use when Claude Code needs to help a user participate in ResonanceContract through the current CA-only direct-pair or queue model, create or confirm a pair request by ca_hash, join or leave the queue, or diagnose pair, queue, warmup, or reward-balance state."
 ---
 
 # Resonance Contract

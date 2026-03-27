@@ -40,19 +40,20 @@ Use this flow only when all conditions below are true:
 9. Read `GetPairQueueStatus()` for the `AA/CA` holder address.
 10. Read `GetPairQueueStats()` when practical.
 11. Stop if the holder is not currently in the queue, and explain in plain language that the entry may already have expired, matched, been actively left before, or been evicted when the queue was full.
-12. Show the pre-send summary using the output contract:
+12. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+13. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, whether the holder still appears queued, what leaving means in plain language, and whether the action can still do anything useful
     - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
     - keep the raw execution address, target CA contract, forwarded method chain, queue timeout, current queue status, queue stats, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-13. Ask for explicit confirmation.
-14. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `LeavePairQueue()` call.
-15. If a `txId` is returned, share the `txId` and explorer link.
-16. Read `GetPairQueueStatus()` again for the `AA/CA` holder address.
-17. Read `GetPairQueueStats()` again when practical.
-18. Infer the removal reason from the transaction result or event logs when possible.
-19. Return the read-after-write summary with post-leave queue state.
-20. Append the community CTA because the queue leave returned a clear non-error result.
+14. Ask for explicit confirmation.
+15. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `LeavePairQueue()` call.
+16. If a `txId` is returned, share the `txId` and explorer link.
+17. Read `GetPairQueueStatus()` again for the `AA/CA` holder address.
+18. Read `GetPairQueueStats()` again when practical.
+19. Infer the removal reason from the transaction result or event logs when possible.
+20. Return the read-after-write summary with post-leave queue state.
+21. Append the success CTA because the queue leave returned a clear non-error result.
 
 ## Must-Stop Conditions
 

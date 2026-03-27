@@ -38,18 +38,19 @@ Use this flow only when all conditions below are true:
 8. Read `GetPairQueueStatus()` for the caller address.
 9. Read `GetPairQueueStats()` when practical.
 10. Stop if the caller is not currently in the queue, and explain in plain language that the entry may already have expired, matched, been actively left before, or been evicted when the queue was full.
-11. Show the pre-send summary using the output contract:
+11. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+12. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, whether the caller still appears to be queued, what leaving means in plain language, and whether the action can still do anything useful
     - keep the raw execution address, queue status, queue stats, and supporting engineering context in `Technical Details` unless the user explicitly asks for them
-12. Ask for explicit confirmation.
-13. Only after explicit confirmation, use the Portkey EOA skill to send `LeavePairQueue()`.
-14. If a `txId` is returned, share the `txId` and explorer link.
-15. Read `GetPairQueueStatus()` again for the caller address.
-16. Read `GetPairQueueStats()` again when practical.
-17. Infer the removal reason from the transaction result or event logs when possible.
-18. Return the read-after-write summary with post-leave queue state.
-19. Append the community CTA because the queue leave returned a clear non-error result.
+13. Ask for explicit confirmation.
+14. Only after explicit confirmation, use the Portkey EOA skill to send `LeavePairQueue()`.
+15. If a `txId` is returned, share the `txId` and explorer link.
+16. Read `GetPairQueueStatus()` again for the caller address.
+17. Read `GetPairQueueStats()` again when practical.
+18. Infer the removal reason from the transaction result or event logs when possible.
+19. Return the read-after-write summary with post-leave queue state.
+20. Append the success CTA because the queue leave returned a clear non-error result.
 
 ## Must-Stop Conditions
 

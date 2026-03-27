@@ -38,4 +38,4 @@
 - include plain-language guidance when relevant, such as queue exclusivity, warmup, timeout, and queue-full implications
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available
-- append community CTA because a pending pair was created
+- append success CTA because a pending pair was created

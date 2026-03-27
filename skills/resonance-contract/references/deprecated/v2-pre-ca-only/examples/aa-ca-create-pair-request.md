@@ -41,4 +41,4 @@
 - keep manager signer, holder address, `caHash`, target raw execution address, target CA contract, forwarded method chain, address-scoped pending state, queue state, and create-side balance check in the localized technical-details layer unless the user asks to expand
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, and pending pair summary with `window_end_time` when available
-- append community CTA because a pending pair was created
+- append success CTA because a pending pair was created

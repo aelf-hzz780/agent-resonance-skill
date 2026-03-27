@@ -60,18 +60,19 @@ Use this flow only when all conditions below are true:
 24. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
 25. Compute the create-side maximum reservation check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 26. Stop if the available reward balance is lower than the create-side maximum reservation check.
-27. Show the pre-send summary using the output contract:
+27. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+28. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on caller identity, target counterparty, target contract address, whether the write can proceed, timeout, queue or pending conflicts, and the balance conclusion
     - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
     - keep the raw execution address, target CA contract, forwarded method chain, pair-state reads, queue-state reads, reward-balance reads, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-28. Ask for explicit confirmation.
-29. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `CreatePairRequest(counterparty)` call.
-30. If a `txId` is returned, share the `txId` and explorer link.
-31. Read `GetPairStatus()` again using the `AA/CA` holder address and `counterparty`.
-32. Read `GetPendingPair()` again.
-33. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
-34. Append the community CTA because the pending pair was successfully created.
+29. Ask for explicit confirmation.
+30. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `CreatePairRequest(counterparty)` call.
+31. If a `txId` is returned, share the `txId` and explorer link.
+32. Read `GetPairStatus()` again using the `AA/CA` holder address and `counterparty`.
+33. Read `GetPendingPair()` again.
+34. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
+35. Append the success CTA because the pending pair was successfully created.
 
 ## Must-Stop Conditions
 

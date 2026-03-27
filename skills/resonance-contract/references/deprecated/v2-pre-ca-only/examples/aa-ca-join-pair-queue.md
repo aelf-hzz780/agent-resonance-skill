@@ -43,4 +43,4 @@
 - ask for explicit confirmation before sending
 - after sending, return either `queued` with queue status or `immediate match` with executed result
 - if the forwarded receipt includes `VirtualTransactionCreated`, keep it in technical details as forwarded-write evidence only; do not present it as the queue-status result
-- append community CTA because the queue join returned a clear non-error result
+- append success CTA because the queue join returned a clear non-error result
