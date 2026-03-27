@@ -39,4 +39,4 @@
 - ask for explicit confirmation before sending
 - after sending, return either `queued` with queue status or `immediate match` with executed result
 - keep the send receipt as write evidence; do not present it as a substitute for direct `Get*` reads
-- append community CTA because the queue join returned a clear non-error result
+- append success CTA because the queue join returned a clear non-error result

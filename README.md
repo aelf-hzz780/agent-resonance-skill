@@ -6,47 +6,46 @@ This repository packages a multi-host skill for user-side participation on `Reso
 
 ## Version
 
-- `resonance-contract` skill: `2.1.1`
+- `resonance-contract` skill: `3.0.0`
 - validated Portkey CA skill: `2.3.0`
-- validated Portkey EOA skill: `1.2.6`
+- compatible contract version: `2.0.0`
 
 It focuses only on:
 
-- account choice and local context readiness
-- `CreatePairRequest`
-- `ConfirmPairRequest`
-- `JoinPairQueue`
-- `LeavePairQueue`
+- local CA context readiness
+- `CreatePairRequestByCa`
+- `ConfirmPairRequestByCa`
+- `JoinPairQueueByCa`
+- `LeavePairQueueByCa`
 - pair, queue, warmup, and reward-balance diagnostics
 
-It does not cover admin operations such as initialization, enablement changes, reward updates, withdrawals, or admin transfer.
+It does not cover admin operations such as initialization, enablement changes, reward updates, Portkey CA contract updates, withdrawals, or admin transfer.
 
 ## What This Skill Does
 
-- routes the user between `AA/CA` and `EOA`
+- routes the user through the CA-only participation model
+- accepts `AA`, `CA`, and `AA/CA` as input aliases but renders `CA` as the canonical user-facing term
+- asks which local CA account to use when multiple CA accounts are available
 - routes the user between direct pair and automatic queue participation
-- uses explicit Portkey dependency skills for local signer or manager resolution
+- uses explicit Portkey CA dependency skill for local CA readiness
 - enforces preflight reads before writes
-- routes all resonance `Get*` and other view-only methods through the appropriate view path rather than `AA/CA` forwarded writes or `EOA` send paths
+- routes all resonance `Get*` and other view-only methods through the direct view path
+- treats `ca_hash` as the write-side identity input and `ca_address` as the read-side state key
 - requires an explicit write confirmation before sending
 - returns summary-first user-facing replies for both pre-send and post-send stages
 - keeps `skill_version` and `dependency_versions` visible in the default user-facing layer
 - moves `Technical Details` behind explicit requests such as `expand details`, `debug`, or `show raw data`
-- explains `VirtualTransactionCreated` only as forwarded-write evidence rather than a view return payload or standalone business-success proof
-- explains queue timeout, matching policy, queue-full behavior, and warmup windows in plain language
-- appends success CTAs for clear completed results and support CTAs when the user is genuinely stuck
+- explains that legacy `EOA` or `ManagerForwardCall` receipts belong to the pre-`v2.0.0` contract path
+- explains queue timeout, matching policy, queue-full behavior, Portkey CA config blockers, and warmup windows in plain language
+- appends success CTAs for clear completed results, support CTAs only when the user is genuinely stuck and the agent cannot continue automatically, and no CTA when the issue is only invalid input, missing required input, or a light route correction the agent can fix immediately
 
 ## Supported Branches
 
 - Account Choice And Participation Mode
-- EOA Create Pair Request
-- EOA Confirm Pair Request
-- EOA Join Pair Queue
-- EOA Leave Pair Queue
-- AA/CA Create Pair Request
-- AA/CA Confirm Pair Request
-- AA/CA Join Pair Queue
-- AA/CA Leave Pair Queue
+- CA Create Pair Request
+- CA Confirm Pair Request
+- CA Join Pair Queue
+- CA Leave Pair Queue
 - Status Query And Diagnostics
 
 ## Canonical Package
@@ -56,39 +55,47 @@ It does not cover admin operations such as initialization, enablement changes, r
 - `skills/resonance-contract/references/examples/`
 - `skills/resonance-contract/references/output-contract.md`
 
+Legacy pre-CA-only material is preserved under:
+
+- `skills/resonance-contract/references/deprecated/v2-pre-ca-only/`
+
 ## Quick Start
 
 This skill now defaults to the current canonical `tDVV` deployment:
 
-- raw address: `28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy`
-- full address: `ELF_28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy_tDVV`
+- raw address: `RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49`
+- full address: `ELF_RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49_tDVV`
+- expected Portkey CA contract on `tDVV`: `2UthYi7AHRdfrqc1YCfeQnjdChDLaas65bW4WxESMGMojFiXj9`
 
 Only provide `resonance_contract_address` explicitly when you want to override that default deployment.
+Current writes still hard-check `GetConfig.portkey_ca_contract_address`; if the live contract has not configured it, CA writes will stop before send.
 
 Use this prompt with an agent that supports workspace or local skills:
 
 ```text
 Use $resonance-contract to help me resonate on ResonanceContract.
-I want to use AA/CA and create a pair request for this counterparty address: <address>.
+I want to use CA and create a pair request for this counterparty ca_hash: <counterparty-ca-hash>.
 ```
 
 For queue participation:
 
 ```text
 Use $resonance-contract to help me join the resonance queue on ResonanceContract.
-I want to use AA/CA, I do not have a counterparty address, and I want the default queue mode.
+I want to use CA, I do not have a counterparty ca_hash, and I want the default queue mode.
 ```
 
-For a status lookup:
+If the local machine has multiple CA accounts, tell the agent which local CA account should be used for this run.
+
+For a status lookup by `ca_hash`:
 
 ```text
-Use $resonance-contract to check the pair status between these two addresses on ResonanceContract: <address-a> and <address-b>.
+Use $resonance-contract to check whether this ca_hash is still queued or has an active pending pair on ResonanceContract: <ca-hash>.
 ```
 
-For queue or warmup diagnostics:
+For a status lookup by resolved `ca_address`:
 
 ```text
-Use $resonance-contract to check whether this address is still in the queue or blocked by warmup on ResonanceContract: <address>.
+Use $resonance-contract to check the pair or queue status on ResonanceContract for this ca_address or pair of ca_address values: <ca-address>.
 ```
 
 ## Host Layout

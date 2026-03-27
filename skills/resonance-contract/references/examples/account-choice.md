@@ -12,25 +12,23 @@
 ## Must Ask Or Confirm
 
 - ask the user to choose only the still-missing dimension
-- ask the user to choose `AA/CA` or `EOA` only when account type is not already implied
-- ask the user to choose `direct pair` or `queue` only when the mode is not already implied by the request
+- ask the user to choose `direct pair` or `queue` only when the mode is not already implied
 
 ## Must Not Ask
 
 - do not ask for the counterparty `email`
-- do not ask for the counterparty `caHash`
-- do not start with an admin method
+- do not ask for the counterparty `Address`
+- do not route the user into legacy `EOA` writes
 
 ## Correct Output Shape
 
-- explain `AA/CA` vs `EOA`
+- explain that the current contract is `CA` only for user-side writes
+- explain that `AA`, `CA`, and `AA/CA` are accepted aliases for the same route
 - explain `direct pair` vs `queue`
 - explain that queue uses `FIFO` by default unless the user later requests another supported policy
-- note that `CA` is accepted as the `AA/CA` alias
-- recommend `AA/CA` when the user has no strong preference
-- remind the user that only direct mode requires a counterparty on-chain `Address`
+- if multiple local `CA` accounts are available, ask which one should be used before entering a write branch
+- explain that direct mode now requires a counterparty `ca_hash`
 - explain in plain language that queue entries also expire and can be affected by queue capacity
 - set the expectation that later write and diagnostics replies will start with a localized user-summary layer, while detailed chain context stays in the localized technical-details layer on demand
-- if the user tried to use `email` or `caHash` for direct mode, keep the user in routing and offer `provide an Address` or `switch to queue`
-- ask the user to choose `AA/CA` or `EOA` only when account type is not already implied
-- ask the user to choose `direct pair` or `queue` only when the mode is not already implied
+- if the user asked for `EOA`, clearly correct that the current contract version no longer supports `EOA` writes
+- if the user tried to use `email` or `Address` for direct mode, keep the user in routing and offer `provide a ca_hash` or `switch to queue`

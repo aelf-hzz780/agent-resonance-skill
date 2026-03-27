@@ -2,22 +2,19 @@
 
 ## User Input
 
-- English: `My agent still can't get a usable JSON-RPC response from the resonance RPC endpoint. What should I do next?`
-- 中文: `我的 agent 还是拿不到这个共振 RPC 节点的可用 JSON-RPC 响应，下一步该怎么办？`
+- English: `Why can’t my current CA account join the queue right now?`
+- 中文: `为什么我现在这个 CA 账号还不能加入队列？`
 
-## Agent Should Choose
+## Example Diagnosis
 
-- `Status Query And Diagnostics`
-
-## Scenario
-
-- the agent already checked the available evidence
-- the current blocker is real, understood, and not something the agent can fix automatically in the same turn
-- the next practical step needs outside help, community troubleshooting, or broader visibility
+- `GetConfig().portkey_ca_contract_address` is missing, so the contract cannot resolve `ca_hash` into `ca_address`
 
 ## Correct Output Shape
 
-- show the localized user-summary layer first, including visible `skill_version`, `dependency_versions`, the observed blocker, the safest current diagnosis, and the next practical step
-- keep the default layer wording bounded to observed facts rather than over-claiming a root cause
-- append the support CTA in the default layer because the user is genuinely stuck and outside help is now useful
-- keep raw RPC evidence, fallback evidence, and replacement diagnostic queries in `Technical Details` unless the user explicitly asks to expand
+- show the localized user-summary layer first
+- keep `skill_version` and `dependency_versions.portkey_ca` visible
+- explain the blocker in plain language
+- state clearly that the agent cannot continue this write automatically
+- append the support CTA in the default visible layer
+- render support CTA in `Telegram -> X` order
+- keep exact config fields and raw read results in the localized technical-details layer unless the user asks to expand

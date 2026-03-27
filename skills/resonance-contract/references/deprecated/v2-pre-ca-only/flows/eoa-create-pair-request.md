@@ -59,17 +59,18 @@ Use this flow only when all conditions below are true:
 23. Read `GetRewardBalance()` when practical and always read `GetAvailableRewardBalance()`.
 24. Compute the create-side maximum reservation check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 25. Stop if the available reward balance is lower than the create-side maximum reservation check.
-26. Show the pre-send summary using the output contract:
+26. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+27. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, whether the write can proceed, timeout, queue or pending conflicts, and the balance conclusion
     - keep the raw execution address, pair-state reads, queue-state reads, reward-balance reads, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-27. Ask for explicit confirmation.
-28. Only after explicit confirmation, use the Portkey EOA skill to send `CreatePairRequest(counterparty)`.
-29. If a `txId` is returned, share the `txId` and explorer link.
-30. Read `GetPairStatus()` again.
-31. Read `GetPendingPair()` again.
-32. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
-33. Append the community CTA because the pending pair was successfully created.
+28. Ask for explicit confirmation.
+29. Only after explicit confirmation, use the Portkey EOA skill to send `CreatePairRequest(counterparty)`.
+30. If a `txId` is returned, share the `txId` and explorer link.
+31. Read `GetPairStatus()` again.
+32. Read `GetPendingPair()` again.
+33. Return the read-after-write summary with the new pending pair fields, including `window_end_time` when available.
+34. Append the success CTA because the pending pair was successfully created.
 
 ## Must-Stop Conditions
 

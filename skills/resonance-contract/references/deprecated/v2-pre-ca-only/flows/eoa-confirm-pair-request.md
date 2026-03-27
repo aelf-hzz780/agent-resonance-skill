@@ -52,20 +52,21 @@ Use this flow only when all conditions below are true:
 18. Compute the baseline minimum pool check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 19. If pending snapshots are available, also compute the effective pair-specific minimum pool check as `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)`.
 20. Stop if the remaining balance is lower than the effective pair-specific minimum pool check.
-21. Show the pre-send summary using the output contract:
+21. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+22. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, whether a valid pending pair exists, how long it remains confirmable, and whether the confirm-side balance check passes
     - keep the raw execution address, active pending pair summary, raw balance check, optional reward-balance diagnostics, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-22. Ask for explicit confirmation.
-23. Only after explicit confirmation, use the Portkey EOA skill to send `ConfirmPairRequest(initiator)`.
-24. If a `txId` is returned, share the `txId` and explorer link.
-25. Read `GetPairStatus()` again.
-26. Read `GetAddressStats()` for both participant addresses when practical.
-27. Read `GetStrongRecord()` for both participant addresses when practical.
-28. Read `GetCertificateStatus()` for both participant addresses when practical.
-29. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
-30. Return the read-after-write summary with outcome, `reward_each`, and any strong-record or certificate-payload updates.
-31. Append the community CTA because the confirm path returned a clear result.
+23. Ask for explicit confirmation.
+24. Only after explicit confirmation, use the Portkey EOA skill to send `ConfirmPairRequest(initiator)`.
+25. If a `txId` is returned, share the `txId` and explorer link.
+26. Read `GetPairStatus()` again.
+27. Read `GetAddressStats()` for both participant addresses when practical.
+28. Read `GetStrongRecord()` for both participant addresses when practical.
+29. Read `GetCertificateStatus()` for both participant addresses when practical.
+30. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
+31. Return the read-after-write summary with outcome, `reward_each`, and any strong-record or certificate-payload updates.
+32. Append the success CTA because the confirm path returned a clear result.
 
 ## Must-Stop Conditions
 

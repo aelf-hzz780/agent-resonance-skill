@@ -53,21 +53,22 @@ Use this flow only when all conditions below are true:
 19. Compute the baseline minimum pool check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 20. If pending snapshots are available, also compute the effective pair-specific minimum pool check as `2 * (success_amount_snapshot + strong_bonus_amount_snapshot)`.
 21. Stop if the remaining balance is lower than the effective pair-specific minimum pool check.
-22. Show the pre-send summary using the output contract:
+22. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+23. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, whether a valid pending pair exists, how long it remains confirmable, and whether the confirm-side balance check passes
     - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
     - keep the raw execution address, target CA contract, forwarded method chain, active pending pair summary, raw balance check, optional reward-balance diagnostics, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-23. Ask for explicit confirmation.
-24. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `ConfirmPairRequest(initiator)` call.
-25. If a `txId` is returned, share the `txId` and explorer link.
-26. Read `GetPairStatus()` again.
-27. Read `GetAddressStats()` for both participant addresses when practical.
-28. Read `GetStrongRecord()` for both participant addresses when practical.
-29. Read `GetCertificateStatus()` for both participant addresses when practical.
-30. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
-31. Return the read-after-write summary with outcome, `reward_each`, and any strong-record or certificate-payload updates.
-32. Append the community CTA because the confirm path returned a clear result.
+24. Ask for explicit confirmation.
+25. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `ConfirmPairRequest(initiator)` call.
+26. If a `txId` is returned, share the `txId` and explorer link.
+27. Read `GetPairStatus()` again.
+28. Read `GetAddressStats()` for both participant addresses when practical.
+29. Read `GetStrongRecord()` for both participant addresses when practical.
+30. Read `GetCertificateStatus()` for both participant addresses when practical.
+31. If executed-state views fail because of an SDK decode issue, decode the `PairResonated` event and combine it with `GetPendingPair()` and `GetAddressStats()` as the final confirmation.
+32. Return the read-after-write summary with outcome, `reward_each`, and any strong-record or certificate-payload updates.
+33. Append the success CTA because the confirm path returned a clear result.
 
 ## Must-Stop Conditions
 

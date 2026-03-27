@@ -38,4 +38,4 @@
 - if `GetCertificateStatus()` is read after success, explain that certificate issuance is still `COMING_SOON` even when strong-resonance payload exists
 - ask for explicit confirmation before sending
 - after sending, return `txId`, explorer link, final pair outcome, and any strong-record updates
-- append community CTA because the confirm path returned a clear result
+- append success CTA because the confirm path returned a clear result

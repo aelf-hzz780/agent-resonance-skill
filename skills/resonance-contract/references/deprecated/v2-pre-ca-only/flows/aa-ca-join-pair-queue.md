@@ -58,20 +58,21 @@ Use this flow only when all conditions below are true:
 20. Compute the join-side maximum reward check as `2 * (config.success_amount + config.strong_bonus_amount)`.
 21. Stop if the remaining balance is lower than the join-side maximum reward check, because neither the immediate-match path nor the queued path can succeed.
 22. If the available reward balance is lower than the join-side maximum reward check but the remaining balance is still sufficient, explain that an immediate match may still succeed while a pure queue-enqueue result is not guaranteed by preflight.
-23. Show the pre-send summary using the output contract:
+23. If any stop condition above is hit, return the blocked summary from the output contract instead of a pre-send confirmation summary; when the blocker is real and the agent cannot continue automatically, append the support CTA in the default layer.
+24. Show the pre-send summary using the output contract:
     - render the localized user-summary layer first, with visible `skill_version` and `dependency_versions`
     - keep the default layer focused on target contract address, queue policy in plain language, timeout, whether the write can proceed, and whether the likely result is immediate match or queued entry
     - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the current reply
     - keep the raw execution address, target CA contract, forwarded method chain, queue stats, remaining-balance and reward-balance reads, the join-side maximum reward check, and other engineering fields in `Technical Details` unless the user explicitly asks for them
-24. Ask for explicit confirmation.
-25. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `JoinPairQueue(input)` call.
-26. If a `txId` is returned, share the `txId` and explorer link.
-27. Inspect the transaction result and logs.
-28. If a `PairResonated` event is present, treat the result as immediate match and summarize the matched addresses, `outcome`, `random_number`, `reward_each`, and `executed_time`.
-29. If the holder remained queued, read `GetPairQueueStatus()` for the holder and `GetPairQueueStats()` again.
-30. Read `GetAddressStats()`, `GetStrongRecord()`, and `GetCertificateStatus()` when practical if the join matched immediately.
-31. Return the read-after-write summary as either `queued` or `immediate match`.
-32. Append the community CTA because the queue join returned a clear non-error result.
+25. Ask for explicit confirmation.
+26. Only after explicit confirmation, use the Portkey CA skill to send the forwarded `JoinPairQueue(input)` call.
+27. If a `txId` is returned, share the `txId` and explorer link.
+28. Inspect the transaction result and logs.
+29. If a `PairResonated` event is present, treat the result as immediate match and summarize the matched addresses, `outcome`, `random_number`, `reward_each`, and `executed_time`.
+30. If the holder remained queued, read `GetPairQueueStatus()` for the holder and `GetPairQueueStats()` again.
+31. Read `GetAddressStats()`, `GetStrongRecord()`, and `GetCertificateStatus()` when practical if the join matched immediately.
+32. Return the read-after-write summary as either `queued` or `immediate match`.
+33. Append the success CTA because the queue join returned a clear non-error result.
 
 ## Must-Stop Conditions
 

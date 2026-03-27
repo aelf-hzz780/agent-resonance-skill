@@ -1,8 +1,8 @@
 # Runtime Compatibility
 
-Version: `2.1.1`
+Version: `3.0.0`
 
-Use this file when the agent needs to normalize deployment config, reason about Portkey dependency versions, explain queue semantics, reason about reward reservation, diagnose warmup, or apply known SDK fallbacks.
+Use this file when the agent needs to normalize deployment config, reason about Portkey CA dependency versions, explain CA-only identity semantics, diagnose warmup or reward reservation, or apply known SDK fallbacks.
 
 ## Current Known Runtime Facts
 
@@ -10,9 +10,10 @@ Current validated `tDVV` runtime facts:
 
 - `chain_id`: `tDVV`
 - `rpc_url`: `https://tdvv-public-node.aelf.io`
-- resonance contract raw address on `tDVV`: `28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy`
-- resonance contract normalized full address on `tDVV`: `ELF_28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy_tDVV`
-- Portkey CA contract on `tDVV`: `2UthYi7AHRdfrqc1YCfeQnjdChDLaas65bW4WxESMGMojFiXj9`
+- resonance contract raw address on `tDVV`: `RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49`
+- resonance contract normalized full address on `tDVV`: `ELF_RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49_tDVV`
+- current expected Portkey CA contract on `tDVV`: `2UthYi7AHRdfrqc1YCfeQnjdChDLaas65bW4WxESMGMojFiXj9`
+- validated Portkey CA skill version: `2.3.0`
 
 ## Contract Address Normalization
 
@@ -25,12 +26,12 @@ Accepted inputs for the resonance contract:
 Normalization rule:
 
 - if no explicit resonance contract address is provided and the runtime is the validated `tDVV` environment, default to:
-  - raw: `28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy`
-  - full: `ELF_28Lot71VrWm1WxrEjuDqaepywi7gYyZwHysUcztjkHGFsPPrZy_tDVV`
+  - raw: `RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49`
+  - full: `ELF_RXnedMaCt4QRJoSca9CG2Qf8Qt9e5prowzRHd6JJh9ue8AD49_tDVV`
 - reply with the normalized full address
 - execute SDK and RPC reads or writes with the normalized raw address
 - if the incoming full address suffix does not match the runtime `chain_id`, stop and explain the mismatch
-- if the normalized full address and the incoming config differ, show both `input_contract_address` and `normalized_full_contract_address`
+- if the incoming config differs from the normalized value, show both `input_contract_address` and `normalized_full_contract_address`
 - if the runtime is not the validated `tDVV` environment and no explicit address is available, stop and explain the missing deployment config
 
 ## RPC Transport Semantics
@@ -49,91 +50,81 @@ Reply rule:
 - if `GET` works but JSON-RPC `POST` times out, hangs, resets, returns an empty response, fails before a parseable JSON-RPC payload is returned, or otherwise never yields a usable JSON-RPC response, describe it as an RPC transport or endpoint availability problem in the current environment
 - if JSON-RPC `POST` returns a structured JSON-RPC error, HTTP application error, exact contract error, parameter-validation error, or ABI/decode error, do not call it a transport problem
 - do not claim a specific root cause such as `VPN`, `router`, `SSL`, `certificate`, or `firewall` unless the evidence clearly isolates that cause
-- prefer wording such as:
-  - `The current environment can reach the endpoint and complete TLS, but JSON-RPC POST requests to the RPC base URL are not returning.`
-  - `This shows an RPC transport problem in the current environment, but it does not by itself isolate the exact root cause.`
-- if the agent is only inferring from browser reachability plus failed SDK calls, say that `GET reachability and POST JSON-RPC health are different checks`
 
 ## Call Path Semantics
 
-Treat method type as the first routing decision, not wallet type alone.
+Treat method type as the first routing decision.
 
 Routing rule:
 
-- for `AA/CA`, resonance state-changing methods use `manager signer -> CA.ManagerForwardCall -> resonanceContract.<writeMethod>`
-- for `AA/CA`, resonance `Get*` and other view-only methods must use the direct view path such as `contract.<Method>.call(...)` or Portkey CA `view-call`
-- for `EOA`, resonance state-changing methods use the generic send path
-- for `EOA`, resonance `Get*` and other view-only methods must use the generic view path such as `portkey_call_view_method`, CLI `contract view`, or an SDK read call
-- do not treat `AA/CA` forwarded writes or `EOA` send receipts as substitutes for direct view responses
-- if a prior agent invoked a resonance `Get*` method through `CA.ManagerForwardCall` or an `EOA` send path, diagnose the wrong call path first before interpreting contract state
+- all current user-side resonance writes use direct send paths to the CA-only methods:
+  - `CreatePairRequestByCa`
+  - `ConfirmPairRequestByCa`
+  - `JoinPairQueueByCa`
+  - `LeavePairQueueByCa`
+- all resonance `Get*` and other view-only methods must use the direct view path such as `contract.<Method>.call(...)`
+- do not route current user-side writes through `ManagerForwardCall`
+- do not treat forwarded or generic send receipts as substitutes for direct view responses
+- if a prior agent invoked a resonance `Get*` method through legacy `CA.ManagerForwardCall` or a generic send path, diagnose the wrong call path first before interpreting contract state
+- if a user pastes an old `EOA` or `ManagerForwardCall` write receipt, explain that it belongs to the pre-`v2.0.0` contract path and does not describe the current CA-only write model
 
-Practical consequence:
+## CA Identity And Relay Semantics
 
-- `GetConfig`, `GetPairQueueStatus`, `GetPendingPair`, `GetActivePendingPair`, and the other resonance `Get*` methods are read models, not writes
-- when these methods are sent through a write path, the result shape is receipt semantics or exact write error semantics, not the inner method's view payload
-
-## VirtualTransactionCreated Semantics
-
-Treat `VirtualTransactionCreated` carefully in `AA/CA` forwarded receipts.
+Treat business identity and relayer identity separately.
 
 Meaning:
 
-- it is expected on successful `CA.ManagerForwardCall` writes
-- it proves that the CA contract created the forwarded inner call
-- it does not by itself expose the decoded return value of the inner resonance method
-- it is not a standalone proof of final business success
+- current user-side writes identify participants by `ca_hash`
+- the contract resolves every `ca_hash` into a `ca_address` by calling the configured Portkey CA contract
+- direct, queue, stats, strong-record, and certificate state all run on resolved `ca_address`
+- `Context.Sender` is only the relayer or operator wallet that paid for the transaction
+- permissionless relay is accepted semantics in this contract version, not a bug
 
-Preferred interpretation order for forwarded writes:
+Practical consequence:
 
-1. classify the receipt as a forwarded write receipt
-2. inspect business events such as `PairQueueJoined`, `PairResonated`, or `PairQueueEntryRemoved`
-3. perform direct read-after-write queries
-4. only then summarize the final business result
+- direct create and confirm need `ca_hash` inputs for writes
+- read-only pair and queue diagnosis still uses `ca_address`
+- if the user provides `ca_hash` for a status lookup, resolve it into `ca_address` first through the configured Portkey CA contract, then perform the reads
 
-If the only available evidence is `VirtualTransactionCreated` without business events or follow-up reads:
+## Portkey CA Dependency Mode
 
-- say that the write was forwarded
-- do not claim that the target view payload was returned
-- do not claim a final pair or queue outcome yet
-
-## Portkey Dependency Mode
-
-Validated local Portkey dependency versions:
+Validated local dependency version:
 
 - Portkey CA skill: `2.3.0`
-- Portkey EOA skill: `1.2.6`
 
 Dependency-version source rule:
 
-- prefer the actually detected local dependency version for the path that was used
-- for `AA/CA`, prefer runtime metadata; if runtime metadata is `0.0.0` but the local package manifest has a real version, prefer the manifest version and report the runtime metadata bug in fallback evidence
-- for `EOA`, prefer runtime metadata when available; otherwise prefer the local package manifest version when the local Portkey EOA skill is actually present
+- prefer the actually detected local dependency version for the current path
+- prefer runtime metadata; if runtime metadata is `0.0.0` but the local package manifest has a real version, prefer the manifest version and report the runtime metadata bug in fallback evidence
 - never copy the validated version into a user reply unless the local runtime or manifest actually confirms that version
-- if the local dependency version still cannot be resolved reliably, omit that `dependency_versions.*` field from the default visible layer and explain the omission only in technical details
-
-Observed local compatibility mode:
-
-- `2.2.x` still works in normal mode for the resonance flow because it was previously validated
-- `2.1.x` still works for the resonance flow, but the agent must apply the compatibility handling below
+- if the local dependency version still cannot be resolved reliably, omit `dependency_versions.portkey_ca` from the default visible layer and explain the omission only in technical details
 
 Suggested reply metadata when the runtime is not on the validated dependency version:
 
 - `dependency_versions.portkey_ca = <detected version>`
 - `dependency_mode = compatibility`
-- if the dependency runtime metadata reports `0.0.0` but the local package manifest has a real version, prefer the manifest version and report the runtime metadata path as buggy
 
-Dependency-mode rule:
+## Write Preflight Hard Checks
 
-- `dependency_mode` only means dependency compatibility state, not generic runtime fallback state
-- valid values in this skill are `normal` and `compatibility`
-- if event decoding, fallback reads, or manifest-version override are used, report them in `used_fallbacks` or fallback evidence instead of inventing `dependency_mode = fallback`
+Apply these checks before any current user-side write:
+
+1. `GetConfig()` must succeed
+2. `GetConfig().portkey_ca_contract_address` must be configured
+3. the contract must be initialized
+4. the local caller `CA` context must be available
+
+If `GetConfig().portkey_ca_contract_address` is missing:
+
+- stop before sending
+- explain that the current contract cannot resolve `ca_hash` into `ca_address`
+- do not attempt best-effort write retries
 
 ## Participation Gating
 
 Create-side methods:
 
-- `CreatePairRequest`
-- `JoinPairQueue`
+- `CreatePairRequestByCa`
+- `JoinPairQueueByCa`
 
 Both require all three conditions:
 
@@ -143,11 +134,11 @@ Both require all three conditions:
 
 Confirm-side note:
 
-- `ConfirmPairRequest` is not gated by `new_participation_available_time`
+- `ConfirmPairRequestByCa` is not gated by `new_participation_available_time`
 
 Plain-language requirement:
 
-- if `new_participation_available_time` is missing on an otherwise initialized contract, report it as an abnormal state or decode issue first; only explain it as "new participation is still blocked until admin finalizes the upgrade" when the deployment is known to be an upgraded legacy instance waiting for finalize
+- if `new_participation_available_time` is missing on an otherwise initialized contract, report it as an abnormal state or decode issue first
 - if `new_participation_available_time` is still in the future, explain it as an upgrade warmup or cooling-off window rather than only repeating the raw field name
 
 ## Balance Model
@@ -160,16 +151,15 @@ Use these reads deliberately:
 
 Write-path rule:
 
-- `CreatePairRequest` reserves the maximum possible reward up front, so its diagnostics must use `available_balance`
-- `JoinPairQueue` is dual-path:
+- `CreatePairRequestByCa` reserves the maximum possible reward up front, so its diagnostics must use `available_balance`
+- `JoinPairQueueByCa` is dual-path:
   - immediate match uses raw `remaining balance`
   - new queue entry uses `available_balance`
-- `ConfirmPairRequest` still checks the raw balance against the maximum reward of the active pending pair snapshot
-- `WithdrawRemaining` and `ExecuteWithdrawRemaining` are admin-only and also use available balance, but this skill only mentions that in diagnostics
+- `ConfirmPairRequestByCa` still checks the raw balance against the maximum reward of the active pending pair snapshot
 
 ## Direct vs Queue Exclusivity
 
-One address can hold only one active matchmaking state at a time:
+One `ca_address` can hold only one active matchmaking state at a time:
 
 - either one active direct pending pair
 - or one active queue entry
@@ -181,7 +171,7 @@ Preflight implications:
 
 Plain-language requirement:
 
-- explain this as "one address can only occupy one participation state at a time" instead of only citing ABI names
+- explain this as "one CA address can only occupy one participation state at a time" instead of only citing ABI names
 
 ## Queue Semantics
 
@@ -189,23 +179,11 @@ Queue behavior that the skill must explain in ordinary language:
 
 - queue timeout comes from `GetConfig().request_expire_seconds`
 - queue entries also stop being active after their snapped `window_end_time`
-- empty/default `JoinPairQueueInput` means `FIFO`
+- empty/default `JoinPairQueueByCaInput` means `FIFO`
 - explicit `RANDOM` means choose from the currently eligible candidates without guaranteeing first-come-first-served order
 - if the queue is full and the new caller still cannot match immediately, the earliest still-valid queue entry is removed before the new caller joins
-- `queue_capacity` defaults to `1000` only when initialization passed `0`; user-facing replies must still treat the current on-chain `queue_capacity` as source of truth
-
-## Recovery Propagation Check
-
-For `AA/CA` create or confirm after recovery:
-
-1. confirm that recovery status is already `pass`
-2. query holder info on the target execution chain, not only the origin chain
-3. verify the chosen manager address is already present in the holder's manager list
-4. only then treat the manager signer as ready for `CA.ManagerForwardCall`
-
-Reason:
-
-- recovery can be visible on `AELF` before the same manager becomes visible on `tDVV`
+- `queue_capacity` defaults to `1000` only when initialization passed `0`
+- if `GetPairQueueStats().queue_capacity` is `0` but `GetConfig().queue_capacity` is positive, prefer `GetConfig().queue_capacity` in user-facing explanation and diagnostics
 
 ## AElf SDK Invocation Rules
 
@@ -217,23 +195,26 @@ Use these rules exactly:
 - `GetAvailableRewardBalance` must be called as `call()` with no `{}` for `Empty` input
 - `GetPairQueueStats` must be called as `call()` with no `{}` for `Empty` input
 - `GetPairStatus` and `GetPendingPair` must use `camelCase` params: `addressA`, `addressB`
-- `CreatePairRequest(Address)`, `ConfirmPairRequest(Address)`, `GetActivePendingPair(address)`, `GetPairQueueStatus(address)`, `GetStrongRecord(address)`, `GetCertificateStatus(address)`, and `GetAddressStats(address)` must encode the top-level `Address` input as a plain address string, not an object wrapper
-- `JoinPairQueue` default `FIFO` path should use empty/default input rather than inventing an unrelated wrapper shape
-- when the agent talks about endpoint health, remember that these SDK calls still ride on HTTP `POST` to `rpc_url` even if a browser can `GET` a human page from the same host
-- a structured JSON-RPC error or exact contract error is still a returned RPC response, not evidence of transport failure
+- `GetActivePendingPair(address)`, `GetPairQueueStatus(address)`, `GetStrongRecord(address)`, `GetCertificateStatus(address)`, and `GetAddressStats(address)` must encode the top-level `Address` input as a plain address string, not an object wrapper
+- `CreatePairRequestByCa` input uses `camelCase` fields: `caHash`, `counterpartyCaHash`
+- `ConfirmPairRequestByCa` input uses `camelCase` fields: `initiatorCaHash`, `counterpartyCaHash`
+- `JoinPairQueueByCa` input uses `camelCase` fields: `caHash`, optional `selectionPolicy`
+- `LeavePairQueueByCa` input uses `camelCase` fields: `caHash`
+- when using the default `FIFO` queue path, omit `selectionPolicy` unless the current SDK requires an explicit default enum
 
 ## Known SDK Fallbacks
 
 Known issues in the current toolchain:
 
 - wrong invocation shape can surface misleading errors such as `Invalid signature`
-- after a pair reaches `EXECUTED`, `GetPairStatus` can fail with an output-transform error in `aelf-sdk`
+- after a pair reaches `EXECUTED`, `GetPairStatus` can still fail with an output-transform error in some `aelf-sdk` environments
 - `GetCertificateStatus(address)` can fail with the same output-transform error
 - queue joins that match immediately may need event decoding from `PairResonated` to identify the matched counterparty and outcome without guessing
+- some environments decode `GetPairQueueStats().queue_capacity` as `0`; prefer `GetConfig().queue_capacity` when it is positive
 
 Fallback order for executed-state confirmation:
 
-1. decode the `PairResonated` event from the confirm transaction result
+1. decode the `PairResonated` event from the transaction result
 2. confirm that `GetPendingPair` is now empty
 3. confirm that `GetAddressStats` changed as expected
 4. read `GetStrongRecord` when available

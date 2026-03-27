@@ -34,4 +34,4 @@
 - explain in plain language that if the holder is already no longer in queue, the reason may be expiry, match, active leave, or capacity eviction
 - ask for explicit confirmation before sending
 - after sending, return the updated queue status and removal reason when it can be inferred
-- append community CTA because the queue leave returned a clear non-error result
+- append success CTA because the queue leave returned a clear non-error result
