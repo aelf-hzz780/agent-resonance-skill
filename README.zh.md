@@ -6,7 +6,7 @@
 
 ## 版本信息
 
-- `resonance-contract` skill：`3.0.0`
+- `resonance-contract` skill：`3.0.1`
 - 已验证 Portkey CA skill：`2.3.0`
 - 兼容合约版本：`2.0.0`
 
@@ -28,6 +28,8 @@
 - 如果本地有多个 CA 账号，会先确认当前要使用哪一个
 - 在 `direct pair` 和 `queue` 两种参与模式之间做明确路由
 - 显式依赖 Portkey CA skill 处理本地 CA 上下文准备
+- 如果本地还没登录，会先走 onboarding：新用户先首次开通，老用户先恢复登录，而不是直接把 queue 当成 blocker
+- 只要本地 CA 账号和依赖 signer/relayer 已经准备好，就把 `queue` 当成正式可执行的自动匹配主路径
 - 所有写操作都先做读校验
 - 所有 resonance `Get*` 和其它 view-only 方法都强制走 direct view path
 - 把 `ca_hash` 作为写侧身份输入，把 `ca_address` 作为读侧状态键
@@ -36,6 +38,7 @@
 - 默认层会展示 `skill_version` 和 `dependency_versions`
 - `Technical Details` 只在用户明确说“展开详情 / debug / 看链上参数”时再完整展开
 - 会把旧版 `EOA` 或 `ManagerForwardCall` 回执解释为 pre-`v2.0.0` 的遗留路径，而不是当前合约语义
+- 不会因为当前写交易底层用了已验证的 Portkey relay transport，就把本来可执行的 `queue` 路径误判成不能继续
 - 会把排队超时、默认撮合规则、满队列处理方式、Portkey CA 配置阻塞和升级冷却期解释成普通用户能看懂的话
 - 对明确完成结果追加 success CTA，只在用户确实卡住、agent 当前无法自动继续时追加 support CTA；如果只是无效输入、缺少必需输入，或 agent 还能立即修正的轻量路由问题，则不追加 CTA
 
@@ -83,6 +86,11 @@
 使用 $resonance-contract 帮我加入 ResonanceContract 的共振队列。
 我想用 CA，我现在没有对手方 ca_hash，并且想走默认排队模式。
 ```
+
+## 迁移说明
+
+- 旧说法 `没有直接工具，所以先去 X / Telegram 找人` 已经废弃
+- 新说法是 `只要 Portkey CA 预检通过，queue 就是正式主路径；社交渠道只在真实阻断时才作为 fallback`
 
 如果本地机器上有多个 CA 账号，记得明确告诉 agent 这次要用哪个本地 CA。
 
