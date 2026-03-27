@@ -17,10 +17,13 @@
 
 - do not ask for a counterparty when the user already chose queue
 - do not ask for an `Address`
+- do not say there is no direct tool when caller context and signer or relayer readiness are already available
+- do not suggest skipping queue in favor of community posting when queue preflight can proceed
 
 ## Correct Output Shape
 
 - show the localized user-summary layer first, including visible `skill_version`, `dependency_versions.portkey_ca`, caller identity, queue policy, timeout, whether the write can proceed, and the main blocker or balance conclusion
+- make it explicit that queue is the formal executable path once the local CA account and dependency signer or relayer are ready
 - explain that queue join may either match immediately or enter the queue
 - explain that queue capacity comes from the live chain config, and if stats temporarily show `0` while config is positive, config wins
 - keep `caller_ca_hash`, `caller_ca_address`, queue reads, queue stats, and balance reads in the localized technical-details layer unless the user asks to expand

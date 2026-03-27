@@ -1,6 +1,6 @@
 # Resonance Contract Output Contract
 
-Version: `3.0.0`
+Version: `3.0.1`
 
 Use this file for reply formatting after the branch flow is chosen.
 
@@ -40,6 +40,7 @@ Default rendering rules:
 - end the default visible layer with a short single-language hint that `Technical Details` can be expanded on request
 - do not expose internal branch names in the default visible layer; use a natural operation label instead
 - if the user is asking for read-only status and the available evidence came from a legacy forwarded or generic send receipt instead of a direct view path, say that first in the default visible layer before diagnosing business state
+- if queue preflight can already proceed with a resolved caller context plus signer or relayer readiness, do not downgrade the reply into support CTA or social fallback just because the host lacks a resonance-only standalone CLI
 
 Host rendering rule:
 
@@ -70,6 +71,7 @@ Default classification rule:
 - use `success` for clear non-error outcomes that the user can build on now
 - use `support` for blocked, stalled, or diagnosable-but-not-actionable-now states where the agent has explained the cause but cannot continue without outside help, coordination, or external recovery
 - use `none` for malformed input, invalid identity format, requests that still need more required user input, or light routing corrections such as old-path explanations where the agent can still continue immediately
+- when queue preflight can proceed, do not classify the state as `support`
 
 CTA belongs to the default visible layer only. `Technical Details` should never be the only place that carries CTA text.
 
@@ -236,6 +238,7 @@ Queue-related replies must cover these topics when relevant:
 - what happens when the queue is full
 - why direct pending and queue states are mutually exclusive
 - how queue-join balance checks split between immediate-match and queued outcomes
+- that queue remains the formal executable path once the local CA account and dependency signer or relayer are ready
 - whether the contract still lacks a configured Portkey CA contract
 - whether new participation is still blocked during the warmup window
 - direct mode now needs `counterparty_ca_hash`, not `email` and not `Address`

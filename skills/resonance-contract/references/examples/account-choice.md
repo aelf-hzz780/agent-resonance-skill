@@ -19,6 +19,8 @@
 - do not ask for the counterparty `email`
 - do not ask for the counterparty `Address`
 - do not route the user into legacy `EOA` writes
+- do not say there is no direct tool when queue preflight can still proceed
+- do not default to X, Telegram, or skip-style fallback while local CA onboarding can continue
 
 ## Correct Output Shape
 
@@ -26,6 +28,8 @@
 - explain that `AA`, `CA`, and `AA/CA` are accepted aliases for the same route
 - explain `direct pair` vs `queue`
 - explain that queue uses `FIFO` by default unless the user later requests another supported policy
+- explain that once the local CA account is ready, queue remains the formal automatic-matching path
+- explain that missing local sign-in should first route into first-time setup or returning-user recovery sign-in, not directly into a queue blocker
 - if multiple local `CA` accounts are available, ask which one should be used before entering a write branch
 - explain that direct mode now requires a counterparty `ca_hash`
 - explain in plain language that queue entries also expire and can be affected by queue capacity
