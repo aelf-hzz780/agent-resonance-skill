@@ -1,6 +1,6 @@
 ---
 name: "resonance-contract"
-description: "Use when OpenCode needs to help a user participate in ResonanceContract through the current CA-only direct-pair or queue model, create or confirm a pair request by ca_hash, join or leave the queue, or diagnose pair, queue, warmup, or reward-balance state."
+description: "Use when OpenCode needs to help a user participate in ResonanceContract through the current CA-only direct-pair or queue model, create or confirm a pair request by ca_hash, join or leave the queue, or diagnose pair, queue, warmup, reward-balance, wrong-call-path, or older-route receipt state."
 ---
 
 # Resonance Contract

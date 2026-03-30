@@ -13,7 +13,7 @@ Use the `resonance-contract` workflow from this repository when the user asks fo
 - `ConfirmPairRequestByCa`
 - `JoinPairQueueByCa`
 - `LeavePairQueueByCa`
-- pair status lookup, queue status lookup, pending diagnosis, expired diagnosis, already-resonated diagnosis, warmup diagnosis, reward-balance diagnosis, or legacy-path diagnosis for pasted old receipts
+- pair status lookup, queue status lookup, pending diagnosis, expired diagnosis, already-resonated diagnosis, warmup diagnosis, reward-balance diagnosis, or wrong-call-path / older-route receipt diagnosis for pasted receipts
 
 ## Canonical Package
 

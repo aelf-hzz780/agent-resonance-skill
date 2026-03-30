@@ -1,6 +1,6 @@
 # Runtime Compatibility
 
-Version: `3.0.1`
+Version: `4.0.0`
 
 Use this file when the agent needs to normalize deployment config, reason about Portkey CA dependency versions, explain CA-only identity semantics, diagnose warmup or reward reservation, or apply known SDK fallbacks.
 
@@ -63,10 +63,11 @@ Routing rule:
   - `JoinPairQueueByCa`
   - `LeavePairQueueByCa`
 - all resonance `Get*` and other view-only methods must use the direct view path such as `contract.<Method>.call(...)`
-- never present `ManagerForwardCall` as the business method or as a legacy-required route; when the validated Portkey CA dependency uses a relay transport underneath a current CA-only write, that transport detail is allowed
+- never present any underlying relay transport as the business method or as a user-facing route; when the validated Portkey CA dependency uses a relay transport underneath a current CA-only write, that transport detail is allowed
 - do not treat forwarded or generic send receipts as substitutes for direct view responses
-- if a prior agent invoked a resonance `Get*` method through legacy `CA.ManagerForwardCall` or a generic send path, diagnose the wrong call path first before interpreting contract state
-- if a user pastes an old `EOA` or `ManagerForwardCall` write receipt, explain that it belongs to the pre-`v2.0.0` contract path and does not describe the current CA-only write model
+- if a pasted receipt references a method outside the current CA-only `*ByCa` write set and the direct-view `Get*` reads, treat it as evidence from an older or unsupported route: say it does not belong to the current CA-only runbook and do not expand the old workflow
+- if a prior agent invoked a resonance `Get*` method through a non-view send path, diagnose the wrong call path first before interpreting contract state
+- if a user pastes a send receipt for what should have been a direct view lookup, explain that the receipt does not substitute for the current CA-only state model
 
 ## CA Identity And Relay Semantics
 

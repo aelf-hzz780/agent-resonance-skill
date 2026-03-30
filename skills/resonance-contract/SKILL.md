@@ -1,6 +1,6 @@
 ---
 name: resonance-contract
-version: 3.0.1
+version: 4.0.0
 description: Use when an agent needs to help a user participate in ResonanceContract through CA-only direct pair or automatic queue flows, create, confirm, join queue, leave queue, or diagnose pair, queue, warmup, or reward-balance state without handling admin operations.
 ---
 
@@ -10,7 +10,7 @@ Use this directory as the canonical `resonance-contract` skill package.
 
 ## Skill Version
 
-- Current skill version: `3.0.1`
+- Current skill version: `4.0.0`
 - If behavior seems inconsistent, report the `version` field from this file first.
 
 ## Scope
@@ -27,8 +27,7 @@ This skill does not implement:
 
 - any admin write such as `Initialize`, `FinalizeParticipationUpgrade`, `SetResonanceEnabled`, `SetResonanceWindow`, `SetRewardAmounts`, `SetPairQueueCapacity`, `SetPortkeyCaContract`, `ChangeAdmin`, `AcceptAdmin`, `WithdrawRemaining`, or `ExecuteWithdrawRemaining`
 - wallet custody, key storage, or recovery logic inside this package
-- legacy `EOA` write paths
-- legacy pre-`v2.0.0` `AA/CA + ManagerForwardCall` business routes where `ManagerForwardCall` itself was treated as the user-facing operation
+- any user-side route outside the current CA-only `*ByCa` contract methods
 - blind retry loops after a failed write
 
 ## Required Dependency Skill
@@ -41,7 +40,7 @@ Routing rule:
 
 - use the Portkey CA skill for local `CA` account readiness and local relayer/signer context when needed
 - if multiple local `CA` accounts are available and the caller is not already implied, ask which local `CA` account to use before entering a write branch
-- never present `ManagerForwardCall` as the business method or as a legacy-required user choice; when the validated Portkey CA dependency uses a current relay transport underneath a CA-only write, that transport is allowed
+- never present any underlying relay transport as the business method or as a user-facing route choice; when the validated Portkey CA dependency uses relay transport underneath a CA-only write, that transport detail is allowed but remains implementation detail
 
 ## Required Config Inputs
 
@@ -114,7 +113,7 @@ Treat these behaviors as canonical for `ResonanceContract v2.0.0`:
 - the contract resolves each `ca_hash` into a `ca_address` through the configured Portkey CA contract
 - pair, queue, stats, strong record, and certificate placeholder state are all keyed by resolved `ca_address`
 - `Context.Sender` is the relayer or operator that paid for the transaction, not the business identity itself
-- a validated Portkey CA relay transport may still wrap the current CA-only write under the hood; that transport detail does not change the business method, which remains `CreatePairRequestByCa`, `ConfirmPairRequestByCa`, `JoinPairQueueByCa`, or `LeavePairQueueByCa`
+- a validated Portkey CA relay transport may still sit underneath the current CA-only write path; that transport detail does not change the business method, which remains `CreatePairRequestByCa`, `ConfirmPairRequestByCa`, `JoinPairQueueByCa`, or `LeavePairQueueByCa`
 - the contract does not require manager visibility and does not validate `manager_infos`
 - unordered pairs can resonate only once in the lifetime of the contract
 - `CreatePairRequestByCa` fails for self-pairing after both sides resolve to the same `ca_address`
@@ -149,7 +148,7 @@ The agent must first explain:
 
 - the current `ResonanceContract v2.0.0` user-side write path is `CA` only
 - `AA`, `CA`, and `AA/CA` are accepted input aliases, but canonical wording in this skill is `CA`
-- `EOA` write paths are no longer supported by the current contract version
+- the current contract no longer supports user-side `EOA` writes
 - `direct pair`: use this when the user already knows the other side's `ca_hash`
 - `queue`: use this when the user does not know a counterparty and wants automatic matching instead
 - once local `CA` readiness and a usable signer or relayer are available, `queue` remains the formal executable automatic-matching path rather than a fallback to community posting
@@ -159,7 +158,7 @@ The agent must first explain:
 
 Then:
 
-- if the user explicitly asks for `EOA`, explain that the current contract version no longer supports `EOA` user-side writes and guide them back to a local `CA` account
+- if the user explicitly asks for `EOA` or another non-CA write route, explain that the current contract version only supports CA-side participation and guide them back to a local `CA` account
 - if the user has not provided or implied a local `CA` context yet, explain that the local `CA` account must be ready first
 - if multiple local `CA` accounts are available and the caller is not already implied, ask which local `CA` account to use
 - if the user did not already provide a counterparty `ca_hash` or explicitly ask for queue, ask whether they want `direct pair` or `queue`
@@ -175,7 +174,7 @@ Read [references/flows/account-choice.md](./references/flows/account-choice.md) 
 - the user makes a generic resonance request without explicitly choosing `direct pair` or `queue`
 - the local caller `CA` context is not ready yet
 - the user only says `help me resonate`, `帮我共振`, or similar
-- the user explicitly asks for legacy `EOA` routing and needs a CA-only correction
+- the user explicitly asks for `EOA` or another non-CA route and needs a CA-only correction
 
 ### Branch 2: CA Create Pair Request
 
@@ -214,7 +213,7 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - the user wants to inspect a pair or queue state without sending a write
 - the user wants to inspect whether a `ca_hash` or `ca_address` is in queue or still has an active pending pair
 - a prior write failed
-- the user needs to understand `pending`, `expired`, `already resonated`, `queue`, `warmup`, legacy path mismatch, or reward-balance state
+- the user needs to understand `pending`, `expired`, `already resonated`, `queue`, `warmup`, wrong-call-path mismatch, or reward-balance state
 
 ## Global Hard Rules
 
@@ -222,6 +221,6 @@ Read [references/flows/status-query-diagnostics.md](./references/flows/status-qu
 - Never ask the user for a direct-mode counterparty `email` or on-chain `Address`; direct mode now accepts `counterparty_ca_hash`.
 - Never continue if the caller `CA` context cannot be resolved from a local CA account.
 - Never continue if the current write path has no usable local relayer or signer that can pay gas for the CA-only transaction.
-- Never present `ManagerForwardCall` as the business method, as a legacy-required route, or as a reason to abandon an otherwise executable CA-only write.
+- Never present any underlying relay transport as the business method, as a route choice, or as a reason to abandon an otherwise executable CA-only write.
 - Never require manager visibility, manager sync, or holder `manager_infos` checks for the current CA-only contract.
-- Never attempt a current user-side `EOA` write path; explain that `ResonanceContract v2.0.0` is CA-only instead.
+- Never attempt or teach any non-CA user-side write path; explain that `ResonanceContract v2.0.0` is CA-only instead.
