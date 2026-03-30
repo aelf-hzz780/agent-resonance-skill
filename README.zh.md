@@ -6,7 +6,7 @@
 
 ## 版本信息
 
-- `resonance-contract` skill：`3.0.1`
+- `resonance-contract` skill：`4.0.0`
 - 已验证 Portkey CA skill：`2.3.0`
 - 兼容合约版本：`2.0.0`
 
@@ -37,7 +37,7 @@
 - 默认先给普通用户摘要，并在写前和写后阶段给出关键锚点
 - 默认层会展示 `skill_version` 和 `dependency_versions`
 - `Technical Details` 只在用户明确说“展开详情 / debug / 看链上参数”时再完整展开
-- 会把旧版 `EOA` 或 `ManagerForwardCall` 回执解释为 pre-`v2.0.0` 的遗留路径，而不是当前合约语义
+- active package 只保留当前 CA-only 路由，不再保留旧路径教学内容
 - 不会因为当前写交易底层用了已验证的 Portkey relay transport，就把本来可执行的 `queue` 路径误判成不能继续
 - 会把排队超时、默认撮合规则、满队列处理方式、Portkey CA 配置阻塞和升级冷却期解释成普通用户能看懂的话
 - 对明确完成结果追加 success CTA，只在用户确实卡住、agent 当前无法自动继续时追加 support CTA；如果只是无效输入、缺少必需输入，或 agent 还能立即修正的轻量路由问题，则不追加 CTA
@@ -57,10 +57,6 @@
 - `skills/resonance-contract/references/flows/`
 - `skills/resonance-contract/references/examples/`
 - `skills/resonance-contract/references/output-contract.md`
-
-旧版 pre-CA-only 材料保存在：
-
-- `skills/resonance-contract/references/deprecated/v2-pre-ca-only/`
 
 ## 快速开始
 
@@ -89,6 +85,7 @@
 
 ## 迁移说明
 
+- 当前合约已经不再支持用户侧 `EOA` 写路径；如果我们是从旧教程迁移过来，先改用本地 `CA` 账号再继续共振
 - 旧说法 `没有直接工具，所以先去 X / Telegram 找人` 已经废弃
 - 新说法是 `只要 Portkey CA 预检通过，queue 就是正式主路径；社交渠道只在真实阻断时才作为 fallback`
 

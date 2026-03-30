@@ -1,6 +1,6 @@
 # Resonance Contract Output Contract
 
-Version: `3.0.1`
+Version: `4.0.0`
 
 Use this file for reply formatting after the branch flow is chosen.
 
@@ -39,7 +39,8 @@ Default rendering rules:
 - keep raw execution addresses, the configured Portkey CA contract, full config reads, full pair or queue reads, and fallback evidence in `Technical Details` unless the user explicitly asks for them
 - end the default visible layer with a short single-language hint that `Technical Details` can be expanded on request
 - do not expose internal branch names in the default visible layer; use a natural operation label instead
-- if the user is asking for read-only status and the available evidence came from a legacy forwarded or generic send receipt instead of a direct view path, say that first in the default visible layer before diagnosing business state
+- if the user is asking for read-only status and the available evidence came from a receipt whose method does not belong to the current CA-only runbook, say in the default visible layer that it comes from an older or unsupported route and does not describe the current CA-only flow before diagnosing business state
+- if the user is asking for read-only status and the available evidence came from a non-view send receipt instead of a direct view path, say that first in the default visible layer before diagnosing business state
 - if queue preflight can already proceed with a resolved caller context plus signer or relayer readiness, do not downgrade the reply into support CTA or social fallback just because the host lacks a resonance-only standalone CLI
 
 Host rendering rule:
@@ -70,7 +71,7 @@ Default classification rule:
 
 - use `success` for clear non-error outcomes that the user can build on now
 - use `support` for blocked, stalled, or diagnosable-but-not-actionable-now states where the agent has explained the cause but cannot continue without outside help, coordination, or external recovery
-- use `none` for malformed input, invalid identity format, requests that still need more required user input, or light routing corrections such as old-path explanations where the agent can still continue immediately
+- use `none` for malformed input, invalid identity format, requests that still need more required user input, or light routing corrections where the agent can still continue immediately
 - when queue preflight can proceed, do not classify the state as `support`
 
 CTA belongs to the default visible layer only. `Technical Details` should never be the only place that carries CTA text.
@@ -242,7 +243,7 @@ Queue-related replies must cover these topics when relevant:
 - whether the contract still lacks a configured Portkey CA contract
 - whether new participation is still blocked during the warmup window
 - direct mode now needs `counterparty_ca_hash`, not `email` and not `Address`
-- if the user asked for `EOA`, explain that the current contract version is CA-only
+- when relevant, that the current contract no longer supports user-side `EOA` writes
 
 Suggested plain-language content for `zh-CN`:
 
@@ -256,7 +257,7 @@ Suggested plain-language content for `zh-CN`:
 - warmup: `合约升级后可能会有一个冷却期，在这个时间点之前不能新发起配对或排队。`
 - missing Portkey CA config: `当前合约还没有配置 Portkey CA 合约地址，所以系统暂时没法把 ca_hash 解析成 ca_address，写操作现在不能继续。`
 - direct by ca hash: `当前 direct 模式要传的是对手方的 ca_hash，不是邮箱，也不是链上 Address。`
-- EOA not supported: `当前合约版本已经下线 EOA 写路径，用户侧共振现在只支持 CA。`
+- EOA deprecated: `如果你是从旧教程或旧 agent 迁移过来的，当前合约已经不支持用户侧 EOA 写路径，现在只支持 CA。`
 - certificate placeholder with strong payload: `证书功能还没开放，不过已经检测到你的强共振记录。`
 - technical details hint: `如需展开技术详情 / 看链上参数 / debug，我可以继续展开。`
 
@@ -272,7 +273,7 @@ Suggested plain-language content for `en`:
 - warmup: `After an upgrade, the contract may enforce a warmup window before new direct pairs or queue joins are allowed.`
 - missing Portkey CA config: `The contract has not configured its Portkey CA contract yet, so it cannot resolve ca_hash into ca_address. Writes cannot continue yet.`
 - direct by ca hash: `Direct mode now needs the counterparty ca_hash, not an email and not an on-chain Address.`
-- EOA not supported: `The current contract version no longer supports user-side EOA writes. Resonance participation is CA-only now.`
+- EOA deprecated: `If you are coming from an older guide or agent, note that the current contract no longer supports user-side EOA writes. Resonance is CA-only now.`
 - certificate placeholder with strong payload: `Certificate issuance is not open yet, but the contract already shows your strong-resonance record.`
 - technical details hint: `If you want Technical Details, raw on-chain parameters, or debug context, I can expand them.`
 
@@ -296,7 +297,7 @@ Technical Details after a write should include:
 
 - short note if the first lookup is still pending
 - `used_fallbacks` whenever any compatibility handling, event-decoding fallback, manifest-version override, queue-capacity fallback, or read fallback was actually used
-- if present, treat any pasted `VirtualTransactionCreated` only as legacy forwarded-write evidence instead of a standalone business-success proof
+- if the available evidence is only a non-view send receipt, explain that it is not a standalone business-success proof
 - exact chain error when failed
 
 ## Read-After-Write Summary

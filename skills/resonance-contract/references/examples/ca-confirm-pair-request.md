@@ -15,7 +15,7 @@
 
 ## Must Not Ask
 
-- do not ask for legacy account-type or relayer-internals details
+- do not ask for already-settled account context or unnecessary relay-internals details
 - do not ask for the initiator `Address`
 
 ## Correct Output Shape

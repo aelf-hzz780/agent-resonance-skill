@@ -19,7 +19,7 @@ Apply this workflow when the user asks for:
 - `ConfirmPairRequestByCa`
 - `JoinPairQueueByCa`
 - `LeavePairQueueByCa`
-- pair status lookup, queue status lookup, pending or expired diagnosis, already-resonated diagnosis, warmup diagnosis, reward-balance diagnosis, or legacy-path diagnosis for pasted old receipts
+- pair status lookup, queue status lookup, pending or expired diagnosis, already-resonated diagnosis, warmup diagnosis, reward-balance diagnosis, or wrong-call-path / older-route receipt diagnosis for pasted receipts
 
 ## Operating Rule
 

@@ -9,7 +9,7 @@ Use this flow when any of the following is true:
 - the user wants to inspect a pair without sending a write
 - the user wants to inspect one `ca_hash` or `ca_address` for active pending-pair or queue status
 - a prior `CreatePairRequestByCa`, `ConfirmPairRequestByCa`, `JoinPairQueueByCa`, or `LeavePairQueueByCa` failed
-- the user wants to understand `pending`, `expired`, `already resonated`, `already in queue`, warmup, queue capacity, reward-balance state, or legacy-path mismatch
+- the user wants to understand `pending`, `expired`, `already resonated`, `already in queue`, warmup, queue capacity, reward-balance state, or wrong-call-path mismatch
 
 ## Required Reads
 
@@ -20,7 +20,7 @@ Read these first:
 All reads in this branch must use direct view calls:
 
 - use `contract.<Method>.call(...)` or the dependency skill's direct view path
-- never use `ManagerForwardCall` or a generic send path for resonance `Get*` or other view-only methods in this branch
+- never use a generic send path or any other non-view transport for resonance `Get*` or other view-only methods in this branch
 
 Read these when relevant to the user input:
 
@@ -48,9 +48,9 @@ Read these when relevant to the user input:
 
 - if `GetConfig()` looks uninitialized, stop and say the contract is not ready
 - if `GetConfig().portkey_ca_contract_address` is missing and the user input is `ca_hash`, stop and say the contract cannot currently resolve CA identities for status lookup
-- if the prior agent invoked a resonance `Get*` or other view-only method through `ManagerForwardCall` or a generic send path, first explain that the wrong call path was used and that the receipt cannot substitute for the direct view response
-- if the available evidence includes `VirtualTransactionCreated`, explain that it only proves a legacy forwarded inner call was created and does not by itself expose the inner view payload or final business result
-- if the user pasted an old `EOA` or `ManagerForwardCall` write receipt, explain that it belongs to the pre-`v2.0.0` contract path and is not the current CA-only write model
+- if the pasted receipt references a method outside the current CA-only `*ByCa` write set and the direct-view `Get*` reads, treat it as a receipt from an older or unsupported route, say it does not belong to the current CA-only runbook, and do not expand the old workflow
+- if the prior agent invoked a resonance `Get*` or other view-only method through a generic send path or another non-view transport, first explain that the wrong call path was used and that the receipt cannot substitute for the direct view response
+- if the available evidence is only a send receipt, explain that it does not by itself expose the direct view payload or final business state
 - if `new_participation_available_time` is missing or unset on an otherwise initialized contract, explain that this is an abnormal state or decode issue first
 - if `new_participation_available_time` is still in the future, explain that new `CreatePairRequestByCa` and `JoinPairQueueByCa` actions are blocked during the upgrade warmup window
 - if the pair query is invalid after identity normalization, stop and explain that both sides must resolve to distinct `ca_address` values
@@ -89,7 +89,7 @@ The reply should contain:
 - include the target normalized full `resonance_contract_address` in the default layer only when the user explicitly supplied a non-default deployment or the deployment choice itself is materially relevant
 - surface `dependency_mode` in the default layer only when compatibility mode or runtime-metadata reliability materially affects the diagnosis
 - localized technical-details layer on demand with chosen flow, current config summary, identity normalization details, pair status summary, address-scoped pending or queue summary, pending-pair details, queue details, queue stats, balance reads, executed outcome details, `GetStrongRecord`, `GetCertificateStatus`, and fallback evidence
-- if the diagnosis started from an old forwarded or send receipt, say in the default layer first whether that receipt came from a legacy path or a wrong path for a view-only method, then put the exact replacement direct-view query in technical details
+- if the diagnosis started from a send receipt, say in the default layer first whether that receipt came from the wrong path for a view-only method, then put the exact replacement direct-view query in technical details
 - if the diagnosis ends in a clear non-error state such as active pending, executed, or still queued, append the success CTA in the default layer
 - if the diagnosis ends in a real blocker or externally stalled state the agent cannot continue automatically, including missing chain/runtime config or missing `portkey_ca_contract_address`, append the support CTA in the default layer
 - do not append any CTA for invalid input, missing required user input, or light routing corrections that still leave the agent able to continue in the same conversation

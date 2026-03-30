@@ -6,7 +6,7 @@ This repository packages a multi-host skill for user-side participation on `Reso
 
 ## Version
 
-- `resonance-contract` skill: `3.0.1`
+- `resonance-contract` skill: `4.0.0`
 - validated Portkey CA skill: `2.3.0`
 - compatible contract version: `2.0.0`
 
@@ -37,7 +37,7 @@ It does not cover admin operations such as initialization, enablement changes, r
 - returns summary-first user-facing replies for both pre-send and post-send stages
 - keeps `skill_version` and `dependency_versions` visible in the default user-facing layer
 - moves `Technical Details` behind explicit requests such as `expand details`, `debug`, or `show raw data`
-- explains that legacy `EOA` or `ManagerForwardCall` receipts belong to the pre-`v2.0.0` contract path
+- keeps the active package focused on the current CA-only route instead of preserving legacy route teaching
 - does not treat the current validated Portkey relay transport as a reason to abandon an otherwise executable CA-only queue write
 - explains queue timeout, matching policy, queue-full behavior, Portkey CA config blockers, and warmup windows in plain language
 - appends success CTAs for clear completed results, support CTAs only when the user is genuinely stuck and the agent cannot continue automatically, and no CTA when the issue is only invalid input, missing required input, or a light route correction the agent can fix immediately
@@ -57,10 +57,6 @@ It does not cover admin operations such as initialization, enablement changes, r
 - `skills/resonance-contract/references/flows/`
 - `skills/resonance-contract/references/examples/`
 - `skills/resonance-contract/references/output-contract.md`
-
-Legacy pre-CA-only material is preserved under:
-
-- `skills/resonance-contract/references/deprecated/v2-pre-ca-only/`
 
 ## Quick Start
 
@@ -89,6 +85,7 @@ I want to use CA, I do not have a counterparty ca_hash, and I want the default q
 
 ## Migration Note
 
+- user-side `EOA` writes are no longer supported on the current contract; if you are following an older guide, switch to a local `CA` account before trying to resonate again
 - old wording such as `there is no direct tool, so go find someone on X or Telegram first` is now deprecated
 - new wording is `queue is the primary path when Portkey CA preflight passes; social channels are only fallback for real blockers`
 

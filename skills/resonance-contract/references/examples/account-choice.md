@@ -18,7 +18,7 @@
 
 - do not ask for the counterparty `email`
 - do not ask for the counterparty `Address`
-- do not route the user into legacy `EOA` writes
+- do not route the user into any non-CA write route
 - do not say there is no direct tool when queue preflight can still proceed
 - do not default to X, Telegram, or skip-style fallback while local CA onboarding can continue
 
@@ -26,6 +26,7 @@
 
 - explain that the current contract is `CA` only for user-side writes
 - explain that `AA`, `CA`, and `AA/CA` are accepted aliases for the same route
+- if the user is following an older guide, explicitly say that user-side `EOA` writes are no longer supported and the user should switch to `CA`
 - explain `direct pair` vs `queue`
 - explain that queue uses `FIFO` by default unless the user later requests another supported policy
 - explain that once the local CA account is ready, queue remains the formal automatic-matching path
@@ -34,5 +35,5 @@
 - explain that direct mode now requires a counterparty `ca_hash`
 - explain in plain language that queue entries also expire and can be affected by queue capacity
 - set the expectation that later write and diagnostics replies will start with a localized user-summary layer, while detailed chain context stays in the localized technical-details layer on demand
-- if the user asked for `EOA`, clearly correct that the current contract version no longer supports `EOA` writes
+- if the user asked for another write route, clearly correct that the current contract version only supports CA-side participation
 - if the user tried to use `email` or `Address` for direct mode, keep the user in routing and offer `provide a ca_hash` or `switch to queue`

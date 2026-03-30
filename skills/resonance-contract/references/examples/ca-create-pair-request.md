@@ -15,7 +15,7 @@
 
 ## Must Not Ask
 
-- do not reopen the legacy account-type explanation
+- do not reopen account context that is already settled
 - do not ask for the counterparty `email`
 - do not ask for the counterparty `Address`
 
